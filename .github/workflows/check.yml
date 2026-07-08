@@ -14,6 +14,11 @@ on:
   schedule:
     - cron: "10 * * * *"     # hourly (ECCC real-time updates ~hourly). Only fires from the default branch.
   workflow_dispatch:
+    inputs:
+      force_notify:
+        description: "Send a test push for the notify rivers regardless of state"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -50,7 +55,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python -m src.main
+        run: python -m src.main ${{ inputs.force_notify == true && '--force-notify' || '' }}
 
       - name: Commit dashboard, state, models
         run: |
