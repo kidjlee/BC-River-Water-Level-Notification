@@ -1,9 +1,9 @@
 {
-  "08MH001": "GO",
-  "08MF005": "GO",
-  "08HA011": "TOO_LOW",
-  "08GA022": "BLOWN_OUT",
-  "08EF001": "GO",
-  "08GA010": "GO",
-  "08MH002": "BLOWN_OUT"
+  "08MH001": "NO_DATA",
+  "08MF005": "NO_DATA",
+  "08HA011": "NO_DATA",
+  "08GA022": "NO_DATA",
+  "08EF001": "NO_DATA",
+  "08GA010": "NO_DATA",
+  "08MH002": "NO_DATA"
 }
