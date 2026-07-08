@@ -31,6 +31,7 @@ defaults:
 rivers:
   - name: "Vedder / Chilliwack River"
     station: "08MH001"          # Chilliwack R at Vedder Crossing (verified)
+    notify: true
     verified: true
     lat: 49.09738
     lon: -121.96748
@@ -106,6 +107,7 @@ rivers:
 
   - name: "Capilano River"
     station: "08GA010"          # Capilano R above intake (verify active/real-time)
+    notify: true
     verified: true
     lat: 49.40
     lon: -123.11
@@ -121,6 +123,7 @@ rivers:
 
   - name: "Coquitlam River"
     station: "08MH002"          # Coquitlam R at Port Coquitlam (verify active/real-time)
+    notify: true
     verified: true
     lat: 49.25
     lon: -122.78
@@ -241,6 +244,7 @@ rivers:
 
   - name: "Pitt River"
     station: "08MH035"          # PITT RIVER NEAR PORT COQUITLAM (auto-added, calibrate)
+    notify: true
     verified: true
     lat: 49.24481
     lon: -122.73407

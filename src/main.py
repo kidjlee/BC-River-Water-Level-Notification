@@ -91,6 +91,10 @@ def main(argv=None) -> int:
         previous = {} if args.force_notify else state.load()
         to_alert = ([a for a in assessments if a.is_alertable] if args.force_notify
                     else state.newly_alertable(assessments, previous))
+        # If any river opts in with `notify: true`, only push about those rivers.
+        notify_stations = {r["station"] for r in rivers if r.get("notify")}
+        if notify_stations:
+            to_alert = [a for a in to_alert if a.station in notify_stations]
         notify.send(to_alert) if to_alert else print("[notify] nothing new to alert on")
     state.save(assessments)
     return 0
