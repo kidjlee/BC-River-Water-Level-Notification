@@ -22,7 +22,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     concurrency:
-      group: river-check
+      group: main-writer      # shared with bootstrap.yml so pushes never race
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
@@ -59,8 +59,13 @@ jobs:
           git add docs/index.html state/state.json
           git add -f models/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update river dashboard + models [skip ci]"
-            git push
+            echo "No changes to commit."; exit 0
           fi
+          git commit -m "Update river dashboard + models [skip ci]"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "push rejected (attempt $i) — rebasing on latest and retrying"
+            git pull --rebase -X ours origin "${GITHUB_REF_NAME}" || true
+            sleep $((i * 3))
+          done
+          echo "push failed after retries"; exit 1

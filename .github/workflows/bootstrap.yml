@@ -12,6 +12,9 @@ permissions:
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
+    concurrency:
+      group: main-writer      # shared with check.yml so pushes never race
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,8 +41,13 @@ jobs:
           git add config/rivers.yaml docs/index.html state/state.json
           git add -f models/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "Nothing to commit."
-          else
-            git commit -m "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]"
-            git push
+            echo "Nothing to commit."; exit 0
           fi
+          git commit -m "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "push rejected (attempt $i) — rebasing and retrying"
+            git pull --rebase -X ours origin main || true
+            sleep $((i * 3))
+          done
+          echo "push failed after retries"; exit 1
