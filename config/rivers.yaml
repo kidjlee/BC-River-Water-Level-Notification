@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# BC salmon rivers to watch.
+#
+# Each river maps to an Environment Canada (ECCC) hydrometric station.
+# Water level data comes from that station; rain forecast comes from the
+# lat/lon (the watershed above the station).
+#
+# IMPORTANT: the `station` IDs below are a best-effort starter list and are
+# marked `verified: false`. Run `python tools/discover_stations.py` (from a
+# machine/CI with internet) to confirm the correct station numbers and coords,
+# then set `verified: true`. The discovery tool can search by river name.
+#
+# Thresholds are in METRES of water level (the station's gauge datum, not
+# depth you'd wade). They are rough defaults — tune them to the levels you
+# personally find fishable on each river. `good_low`..`good_high` is your
+# "go fishing" zone; above `blown_out` the river is too high/dirty/unsafe.
+# ---------------------------------------------------------------------------
+
+defaults:
+  # Used when a river omits a field. Override per-river below.
+  units: m
+  # How we turn raw level into advice (see src/analyze.py).
+  rising_rate_caution_m_per_h: 0.05   # rising faster than this => "blowing out"
+
+rivers:
+  - name: "Vedder / Chilliwack River"
+    station: "08MH001"          # Chilliwack R at Vedder Crossing (VERIFY)
+    verified: false
+    lat: 49.093
+    lon: -121.961
+    species: ["coho", "chum", "chinook", "steelhead"]
+    good_low: 1.20
+    good_high: 2.10
+    blown_out: 2.60
+    notes: "Prime on the drop after a rain bump, once it clears."
+
+  - name: "Fraser River at Hope"
+    station: "08MF005"          # Fraser R at Hope (VERIFY)
+    verified: false
+    lat: 49.386
+    lon: -121.451
+    species: ["sockeye", "pink", "chinook"]
+    good_low: 4.0
+    good_high: 6.5
+    blown_out: 8.0
+    notes: "Big system; bar fishing tied to level + timing of runs."
+
+  - name: "Cowichan River"
+    station: "08HA011"          # Cowichan R near Duncan (VERIFY)
+    verified: false
+    lat: 48.781
+    lon: -123.678
+    species: ["coho", "chinook", "steelhead", "brown trout"]
+    good_low: 0.70
+    good_high: 1.40
+    blown_out: 2.00
+    notes: "Low-water summer fishery; needs fall rain to fire up."
+
+  - name: "Squamish River"
+    station: "08GA022"          # Squamish R near Brackendale (VERIFY)
+    verified: false
+    lat: 49.792
+    lon: -123.152
+    species: ["chum", "coho", "pink", "steelhead"]
+    good_low: 1.00
+    good_high: 2.00
+    blown_out: 2.80
+    notes: "Glacial; watch for melt-driven afternoon rise in summer."
+
+  - name: "Skeena River at Usk"
+    station: "08EF001"          # Skeena R at Usk (VERIFY)
+    verified: false
+    lat: 54.632
+    lon: -128.433
+    species: ["chinook", "sockeye", "coho", "steelhead"]
+    good_low: 4.0
+    good_high: 8.0
+    blown_out: 10.0
+    notes: "Freshet-driven; huge seasonal swing."

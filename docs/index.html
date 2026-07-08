@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BC Salmon River Conditions</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f7f9; --fg:#111827; --card:#fff; --muted:#6b7280; --line:#e5e7eb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1115; --fg:#e5e7eb; --card:#171a21; --muted:#9ca3af; --line:#262b33; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); }
+  .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 24px; font-size:.9rem; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); }
+  .card { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent);
+           border-radius:12px; padding:16px; }
+  .card header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .card h2 { font-size:1.05rem; margin:0; }
+  .badge { font-size:.72rem; font-weight:700; letter-spacing:.04em; color:#fff;
+            background:var(--accent); padding:3px 8px; border-radius:999px; white-space:nowrap; }
+  .metrics { display:flex; align-items:center; gap:12px; margin:12px 0 6px; }
+  .level { display:flex; flex-direction:column; }
+  .num { font-size:1.5rem; font-weight:700; }
+  .trend { font-size:.8rem; color:var(--muted); }
+  .spark { flex:1; height:44px; }
+  .spark-empty { flex:1; font-size:.75rem; color:var(--muted); }
+  .headline { margin:6px 0; font-weight:600; }
+  .outlook { margin:6px 0; font-size:.88rem; color:var(--muted); }
+  .card footer { display:flex; justify-content:space-between; font-size:.72rem;
+                  color:var(--muted); margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }
+  .foot { margin-top:28px; font-size:.8rem; color:var(--muted); text-align:center; }
+  a { color:inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎣 BC Salmon River Conditions</h1>
+  <p class="sub">Live water levels + rain outlook. Updated sample data — awaiting first live run.
+     Green = go fish. Not a safety guarantee — always check conditions yourself.</p>
+  <div class="grid">
+    
+    <article class="card" style="--accent:#2e9e5b">
+      <header>
+        <h2>Vedder / Chilliwack River</h2>
+        <span class="badge">🟢 GO FISH</span>
+      </header>
+      <div class="metrics">
+        <div class="level"><span class="num">1.33 m</span><span class="trend">→ steady</span></div>
+        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#2e9e5b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,2.0 6.6,2.9 11.2,3.7 15.8,4.6 20.4,5.4 25.0,6.3 29.6,7.1 34.2,8.0 38.8,8.8 43.4,9.7 48.0,10.5 52.6,11.4 57.1,12.2 61.7,13.1 66.3,13.9 70.9,14.8 75.5,15.6 80.1,16.5 84.7,17.3 89.3,18.2 93.9,19.0 98.5,19.9 103.1,20.7 107.7,21.6 112.3,22.4 116.9,23.3 121.5,24.1 126.1,25.0 130.7,25.8 135.3,26.7 139.9,27.5 144.5,28.4 149.1,29.2 153.7,30.1 158.3,30.9 162.9,31.8 167.4,32.6 172.0,33.5 176.6,34.3 181.2,35.2 185.8,36.0 190.4,36.9 195.0,37.7 199.6,38.6 204.2,39.4 208.8,40.3 213.4,41.1 218.0,42.0"/></svg>
+      </div>
+      <p class="headline">1.33 m — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Next 3 days: light rain forecast (5 mm). Driest day: tomorrow.</p>
+      <footer><span>Station 08MH001</span><span>Jul 08, 03:39 UTC</span></footer>
+    </article>
+
+    <article class="card" style="--accent:#2e9e5b">
+      <header>
+        <h2>Cowichan River</h2>
+        <span class="badge">🟢 GO FISH</span>
+      </header>
+      <div class="metrics">
+        <div class="level"><span class="num">1.00 m</span><span class="trend">→ steady</span></div>
+        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#2e9e5b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,42.0 11.2,42.0 15.8,42.0 20.4,42.0 25.0,42.0 29.6,42.0 34.2,42.0 38.8,42.0 43.4,42.0 48.0,42.0 52.6,42.0 57.1,42.0 61.7,42.0 66.3,42.0 70.9,42.0 75.5,42.0 80.1,42.0 84.7,42.0 89.3,42.0 93.9,42.0 98.5,42.0 103.1,42.0 107.7,42.0 112.3,42.0 116.9,42.0 121.5,42.0 126.1,42.0 130.7,42.0 135.3,42.0 139.9,42.0 144.5,42.0 149.1,42.0 153.7,42.0 158.3,42.0 162.9,42.0 167.4,42.0 172.0,42.0 176.6,42.0 181.2,42.0 185.8,42.0 190.4,42.0 195.0,42.0 199.6,42.0 204.2,42.0 208.8,42.0 213.4,42.0 218.0,42.0"/></svg>
+      </div>
+      <p class="headline">1.00 m — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Next 3 days: little/no rain forecast (2 mm). Stable conditions — should stay fishable. Driest day: today.</p>
+      <footer><span>Station 08HA011</span><span>Jul 08, 03:39 UTC</span></footer>
+    </article>
+
+    <article class="card" style="--accent:#c9a227">
+      <header>
+        <h2>Squamish River</h2>
+        <span class="badge">🟡 GET READY</span>
+      </header>
+      <div class="metrics">
+        <div class="level"><span class="num">0.96 m</span><span class="trend">↑ rising</span></div>
+        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#c9a227" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,41.1 11.2,40.3 15.8,39.4 20.4,38.6 25.0,37.7 29.6,36.9 34.2,36.0 38.8,35.2 43.4,34.3 48.0,33.5 52.6,32.6 57.1,31.8 61.7,30.9 66.3,30.1 70.9,29.2 75.5,28.4 80.1,27.5 84.7,26.7 89.3,25.8 93.9,25.0 98.5,24.1 103.1,23.3 107.7,22.4 112.3,21.6 116.9,20.7 121.5,19.9 126.1,19.0 130.7,18.2 135.3,17.3 139.9,16.5 144.5,15.6 149.1,14.8 153.7,13.9 158.3,13.1 162.9,12.2 167.4,11.4 172.0,10.5 176.6,9.7 181.2,8.8 185.8,8.0 190.4,7.1 195.0,6.3 199.6,5.4 204.2,4.6 208.8,3.7 213.4,2.9 218.0,2.0"/></svg>
+      </div>
+      <p class="headline">0.96 m — low but rising toward the zone.</p>
+      <p class="outlook">Next 3 days: heavy rain forecast (45 mm). Expect the river to rise — could push into the zone.</p>
+      <footer><span>Station 08GA022</span><span>Jul 08, 03:39 UTC</span></footer>
+    </article>
+
+    <article class="card" style="--accent:#d97706">
+      <header>
+        <h2>Fraser River at Hope</h2>
+        <span class="badge">🟠 MARGINAL</span>
+      </header>
+      <div class="metrics">
+        <div class="level"><span class="num">7.82 m</span><span class="trend">↑ rising</span></div>
+        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,41.1 11.2,40.3 15.8,39.4 20.4,38.6 25.0,37.7 29.6,36.9 34.2,36.0 38.8,35.2 43.4,34.3 48.0,33.5 52.6,32.6 57.1,31.8 61.7,30.9 66.3,30.1 70.9,29.2 75.5,28.4 80.1,27.5 84.7,26.7 89.3,25.8 93.9,25.0 98.5,24.1 103.1,23.3 107.7,22.4 112.3,21.6 116.9,20.7 121.5,19.9 126.1,19.0 130.7,18.2 135.3,17.3 139.9,16.5 144.5,15.6 149.1,14.8 153.7,13.9 158.3,13.1 162.9,12.2 167.4,11.4 172.0,10.5 176.6,9.7 181.2,8.8 185.8,8.0 190.4,7.1 195.0,6.3 199.6,5.4 204.2,4.6 208.8,3.7 213.4,2.9 218.0,2.0"/></svg>
+      </div>
+      <p class="headline">7.82 m — high; fishable spots but use caution.</p>
+      <p class="outlook">Next 3 days: heavy rain forecast (60 mm).</p>
+      <footer><span>Station 08MF005</span><span>Jul 08, 03:39 UTC</span></footer>
+    </article>
+
+    <article class="card" style="--accent:#3b82f6">
+      <header>
+        <h2>Skeena River at Usk</h2>
+        <span class="badge">🔵 TOO LOW</span>
+      </header>
+      <div class="metrics">
+        <div class="level"><span class="num">3.00 m</span><span class="trend">→ steady</span></div>
+        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,42.0 11.2,42.0 15.8,42.0 20.4,42.0 25.0,42.0 29.6,42.0 34.2,42.0 38.8,42.0 43.4,42.0 48.0,42.0 52.6,42.0 57.1,42.0 61.7,42.0 66.3,42.0 70.9,42.0 75.5,42.0 80.1,42.0 84.7,42.0 89.3,42.0 93.9,42.0 98.5,42.0 103.1,42.0 107.7,42.0 112.3,42.0 116.9,42.0 121.5,42.0 126.1,42.0 130.7,42.0 135.3,42.0 139.9,42.0 144.5,42.0 149.1,42.0 153.7,42.0 158.3,42.0 162.9,42.0 167.4,42.0 172.0,42.0 176.6,42.0 181.2,42.0 185.8,42.0 190.4,42.0 195.0,42.0 199.6,42.0 204.2,42.0 208.8,42.0 213.4,42.0 218.0,42.0"/></svg>
+      </div>
+      <p class="headline">3.00 m — too low. Needs water.</p>
+      <p class="outlook">Next 3 days: little/no rain forecast (1 mm). Driest day: today.</p>
+      <footer><span>Station 08EF001</span><span>Jul 08, 03:39 UTC</span></footer>
+    </article>
+  </div>
+  <p class="foot">Water data: Environment and Climate Change Canada (wateroffice.ec.gc.ca).
+     Rain: Open-Meteo. Thresholds are personal estimates — tune them in config/rivers.yaml.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+name: Check river levels
+
+# Free scheduled runs on GitHub's infrastructure — no server needed.
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # every 3 hours (UTC). Tune as you like.
+  workflow_dispatch:         # lets you run it manually from the Actions tab
+
+permissions:
+  contents: write            # to commit the updated dashboard + state back
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: river-check
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run check
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python -m src.main
+
+      - name: Commit dashboard + state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html state/state.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update river dashboard + state [skip ci]"
+            git push
+          fi
