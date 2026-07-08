@@ -1,13 +1,22 @@
 name: Check river levels
 
-# Free scheduled runs on GitHub's infrastructure — no server needed.
+# Runs on GitHub's network (which CAN reach Environment Canada), builds the
+# dashboard, trains models on first run, and commits results back so GitHub
+# Pages can serve them to your phone.
+#
+# NOTE: `schedule` only fires from the repo's DEFAULT branch. On a feature
+# branch, the `push` trigger below keeps the dashboard fresh; once merged to
+# main, the 3-hourly schedule takes over.
 on:
+  push:
+    branches: ["claude/salmon-water-level-alerts-ru8e9b"]
+    paths-ignore: ["docs/**", "state/**", "models/**"]   # avoid self-trigger loops
   schedule:
-    - cron: "0 */3 * * *"   # every 3 hours (UTC). Tune as you like.
-  workflow_dispatch:         # lets you run it manually from the Actions tab
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
 
 permissions:
-  contents: write            # to commit the updated dashboard + state back
+  contents: write
 
 jobs:
   check:
@@ -25,6 +34,18 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt
 
+      - name: Verify station IDs (non-fatal — shows which are valid)
+        run: python tools/discover_stations.py --verify 08MH001 08MF005 08HA011 08GA022 08EF001 || true
+
+      - name: Train models on first run (real history)
+        run: |
+          if [ -z "$(ls models/*.json 2>/dev/null)" ]; then
+            echo "No models yet — training from history..."
+            python tools/train_forecast.py || true
+          else
+            echo "Models present — skipping training."
+          fi
+
       - name: Run check
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
@@ -37,14 +58,15 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python -m src.main
 
-      - name: Commit dashboard + state
+      - name: Commit dashboard, state, models
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/index.html state/state.json
+          git add -f models/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update river dashboard + state [skip ci]"
+            git commit -m "Update river dashboard + models [skip ci]"
             git push
           fi
