@@ -106,7 +106,7 @@ rivers:
 
   - name: "Capilano River"
     station: "08GA010"          # Capilano R above intake (verify active/real-time)
-    verified: false
+    verified: true
     lat: 49.40
     lon: -123.11
     metric: level
@@ -114,14 +114,14 @@ rivers:
     fed_by: rain
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "steelhead"]
-    good_low: 0.30
-    good_high: 0.90
-    blown_out: 1.40
+    good_low: 0.89
+    good_high: 1.24
+    blown_out: 1.81
     notes: "Below Cleveland Dam; flashy after rain. Calibrate thresholds."
 
   - name: "Coquitlam River"
     station: "08MH002"          # Coquitlam R at Port Coquitlam (verify active/real-time)
-    verified: false
+    verified: true
     lat: 49.25
     lon: -122.78
     metric: level
@@ -129,7 +129,172 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["chum", "coho", "chinook"]
-    good_low: 0.40
-    good_high: 1.10
-    blown_out: 1.70
+    good_low: 7.93
+    good_high: 8.05
+    blown_out: 8.38
     notes: "Dam-controlled + rain response. Calibrate thresholds."
+
+  - name: "Alouette River"
+    station: "08MH005"          # ALOUETTE RIVER NEAR HANEY (auto-added, calibrate)
+    verified: true
+    lat: 49.239
+    lon: -122.57975
+    metric: level
+    region: "Lower Mainland"
+    fed_by: rain
+    season_months: [9, 10, 11, 12]
+    species: ["coho", "chum", "chinook"]
+    good_low: 0.75
+    good_high: 0.8
+    blown_out: 0.9
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Chehalis River"
+    station: "08MG001"          # CHEHALIS RIVER NEAR HARRISON MILLS (auto-added, calibrate)
+    verified: true
+    lat: 49.30003
+    lon: -121.93777
+    metric: level
+    region: "Fraser Valley"
+    fed_by: rain
+    season_months: [9, 10, 11, 12]
+    species: ["coho", "chum", "chinook", "steelhead"]
+    good_low: 8.99
+    good_high: 9.43
+    blown_out: 9.93
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Harrison River"
+    station: "08MG014"          # HARRISON RIVER AT HARRISON MILLS (auto-added, calibrate)
+    verified: true
+    lat: 49.23465
+    lon: -121.95931
+    metric: level
+    region: "Fraser Valley"
+    fed_by: rain
+    season_months: [9, 10, 11, 12]
+    species: ["chum", "coho", "chinook", "sockeye"]
+    good_low: 1.69
+    good_high: 2.53
+    blown_out: 6.7
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Stave River"
+    station: "08MH147"          # STAVE RIVER ABOVE STAVE LAKE (auto-added, calibrate)
+    verified: true
+    lat: 49.55619
+    lon: -122.32307
+    metric: level
+    region: "Lower Mainland"
+    fed_by: rain
+    season_months: [9, 10, 11, 12]
+    species: ["chum", "coho", "chinook"]
+    good_low: 2.17
+    good_high: 2.49
+    blown_out: 3.11
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Cheakamus River"
+    station: "08GA043"          # CHEAKAMUS RIVER NEAR BRACKENDALE (auto-added, calibrate)
+    verified: true
+    lat: 49.81603
+    lon: -123.15008
+    metric: level
+    region: "Sea-to-Sky"
+    fed_by: glacier
+    season_months: [8, 9, 10, 11]
+    species: ["coho", "chum", "pink", "steelhead"]
+    good_low: 0.89
+    good_high: 1.04
+    blown_out: 1.21
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Coquihalla River"
+    station: "08MF062"          # COQUIHALLA RIVER BELOW NEEDLE CREEK (auto-added, calibrate)
+    verified: true
+    lat: 49.54189
+    lon: -121.11997
+    metric: level
+    region: "Fraser Valley"
+    fed_by: snow
+    season_months: [9, 10, 11]
+    species: ["coho", "chinook", "steelhead"]
+    good_low: 2.0
+    good_high: 2.11
+    blown_out: 2.24
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Nicomekl River"
+    station: "08MH155"          # NICOMEKL RIVER AT 203 STREET, LANGLEY (auto-added, calibrate)
+    verified: true
+    lat: 49.0957
+    lon: -122.66009
+    metric: level
+    region: "Lower Mainland"
+    fed_by: rain
+    season_months: [10, 11, 12]
+    species: ["coho", "chum", "chinook"]
+    good_low: 0.7
+    good_high: 1.11
+    blown_out: 1.84
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Pitt River"
+    station: "08MH035"          # PITT RIVER NEAR PORT COQUITLAM (auto-added, calibrate)
+    verified: true
+    lat: 49.24481
+    lon: -122.73407
+    metric: level
+    region: "Lower Mainland"
+    fed_by: glacier
+    season_months: [8, 9, 10, 11]
+    species: ["coho", "chum", "chinook", "sockeye"]
+    good_low: 3.12
+    good_high: 3.3
+    blown_out: 3.48
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Mamquam River"
+    station: "08GA075"          # MAMQUAM RIVER ABOVE RING CREEK (auto-added, calibrate)
+    verified: true
+    lat: 49.72595
+    lon: -123.1021
+    metric: level
+    region: "Sea-to-Sky"
+    fed_by: glacier
+    season_months: [8, 9, 10, 11]
+    species: ["coho", "chum", "pink"]
+    good_low: 1.49
+    good_high: 1.84
+    blown_out: 2.22
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Kanaka Creek"
+    station: "08MH076"          # KANAKA CREEK NEAR WEBSTER CORNERS (auto-added, calibrate)
+    verified: true
+    lat: 49.20709
+    lon: -122.53661
+    metric: level
+    region: "Lower Mainland"
+    fed_by: rain
+    season_months: [10, 11, 12]
+    species: ["coho", "chum"]
+    good_low: 0.96
+    good_high: 1.12
+    blown_out: 1.29
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
+
+  - name: "Sumas River"
+    station: "08MH029"          # SUMAS RIVER NEAR HUNTINGDON (auto-added, calibrate)
+    verified: true
+    lat: 49.00249
+    lon: -122.2323
+    metric: level
+    region: "Fraser Valley"
+    fed_by: rain
+    season_months: [10, 11, 12]
+    species: ["coho", "chum", "chinook"]
+    good_low: 0.87
+    good_high: 1.25
+    blown_out: 1.81
+    notes: "Auto-added from DFO Region 2; thresholds pending calibration."
