@@ -67,11 +67,20 @@ def list_bc() -> None:
         print(_row(f))
 
 
+def verify_config() -> None:
+    import yaml
+    from pathlib import Path
+    cfg = yaml.safe_load(Path("config/rivers.yaml").read_text())
+    ids = [r["station"] for r in cfg.get("rivers", [])]
+    verify(ids)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--search", metavar="NAME", help="find BC stations by river/name substring")
     g.add_argument("--verify", nargs="+", metavar="ID", help="check that station ID(s) exist")
+    g.add_argument("--verify-config", action="store_true", help="verify every station in config/rivers.yaml")
     g.add_argument("--list-bc", action="store_true", help="dump all BC stations")
     args = ap.parse_args(argv)
 
@@ -80,6 +89,8 @@ def main(argv=None) -> int:
             search(args.search)
         elif args.verify:
             verify(args.verify)
+        elif args.verify_config:
+            verify_config()
         elif args.list_bc:
             list_bc()
     except requests.HTTPError as e:

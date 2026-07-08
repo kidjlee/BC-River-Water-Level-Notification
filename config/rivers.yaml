@@ -35,6 +35,7 @@ rivers:
     lat: 49.09738
     lon: -121.96748
     metric: level
+    region: "Lower Mainland"
     fed_by: mixed
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "chinook", "steelhead"]
@@ -49,6 +50,7 @@ rivers:
     lat: 49.38596
     lon: -121.45424
     metric: flow               # discussed in m^3/s, not level
+    region: "Fraser Valley"
     fed_by: snow
     season_months: [7, 8, 9, 10]
     species: ["sockeye", "pink", "chinook"]
@@ -63,6 +65,7 @@ rivers:
     lat: 48.77308
     lon: -123.71447
     metric: level
+    region: "Vancouver Island"
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["coho", "chinook", "steelhead", "brown trout"]
@@ -77,6 +80,7 @@ rivers:
     lat: 49.79502
     lon: -123.20316
     metric: level
+    region: "Sea-to-Sky"
     fed_by: glacier
     season_months: [8, 9, 10, 11]
     species: ["chum", "coho", "pink", "steelhead"]
@@ -91,6 +95,7 @@ rivers:
     lat: 54.63726
     lon: -128.40826
     metric: flow
+    region: "North Coast"
     fed_by: snow
     season_months: [7, 8, 9, 10]
     species: ["chinook", "sockeye", "coho", "steelhead"]
@@ -98,3 +103,33 @@ rivers:
     good_high: 2500
     blown_out: 4000
     notes: "Freshet-driven; huge seasonal swing. Calibrate flow thresholds."
+
+  - name: "Capilano River"
+    station: "08GA010"          # Capilano R above intake (verify active/real-time)
+    verified: false
+    lat: 49.40
+    lon: -123.11
+    metric: level
+    region: "North Shore"
+    fed_by: rain
+    season_months: [9, 10, 11, 12]
+    species: ["coho", "chum", "steelhead"]
+    good_low: 0.30
+    good_high: 0.90
+    blown_out: 1.40
+    notes: "Below Cleveland Dam; flashy after rain. Calibrate thresholds."
+
+  - name: "Coquitlam River"
+    station: "08MH002"          # Coquitlam R at Port Coquitlam (verify active/real-time)
+    verified: false
+    lat: 49.25
+    lon: -122.78
+    metric: level
+    region: "Lower Mainland"
+    fed_by: rain
+    season_months: [10, 11, 12]
+    species: ["chum", "coho", "chinook"]
+    good_low: 0.40
+    good_high: 1.10
+    blown_out: 1.70
+    notes: "Dam-controlled + rain response. Calibrate thresholds."

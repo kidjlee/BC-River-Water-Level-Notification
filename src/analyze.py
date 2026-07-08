@@ -55,6 +55,9 @@ class Assessment:
     good_low: float | None = None
     good_high: float | None = None
     blown_out: float | None = None
+    region: str = ""
+    species: list = field(default_factory=list)
+    in_season: bool = True
 
     @property
     def emoji(self) -> str:
@@ -173,8 +176,12 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
     unit = "cms" if metric == "flow" else "m"
     latest = data.latest_metric(metric)
 
+    month = now.astimezone(BC_TZ).month
+    season = river.get("season_months") or list(range(1, 13))
     base = dict(river=name, station=station, metric=metric, unit=unit,
-                good_low=river["good_low"], good_high=river["good_high"], blown_out=river["blown_out"])
+                good_low=river["good_low"], good_high=river["good_high"], blown_out=river["blown_out"],
+                region=river.get("region", ""), species=river.get("species", []),
+                in_season=(month in season))
 
     if latest is None:
         return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,

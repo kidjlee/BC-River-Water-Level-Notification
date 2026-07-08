@@ -12,7 +12,7 @@ on:
     branches: ["claude/salmon-water-level-alerts-ru8e9b"]
     paths-ignore: ["docs/**", "state/**", "models/**"]   # avoid self-trigger loops
   schedule:
-    - cron: "0 */3 * * *"
+    - cron: "10 * * * *"     # hourly (ECCC real-time updates ~hourly). Only fires from the default branch.
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify station IDs (non-fatal — shows which are valid)
-        run: python tools/discover_stations.py --verify 08MH001 08MF005 08HA011 08GA022 08EF001 || true
+        run: python tools/discover_stations.py --verify-config || true
 
       - name: Train any missing models (real history)
         run: python tools/train_forecast.py --missing-only || true

@@ -36,6 +36,10 @@ MODES = {
     "08GA022": dict(base_frac=0.62, storm=[4, 5, 3], peak_age_h=6, forecast=[3, 2, 1, 0]),
     # Skeena: high edge, rising -> MARGINAL
     "08EF001": dict(base_frac=0.82, storm=[14, 18, 16], peak_age_h=4, forecast=[16, 10, 6, 2]),
+    # Capilano: in the zone, dropping after rain -> GO
+    "08GA010": dict(base_frac=0.55, storm=[20, 10, 3], peak_age_h=30, forecast=[1, 0, 2, 1]),
+    # Coquitlam: low, rain coming -> GET_READY
+    "08MH002": dict(base_frac=0.15, storm=[2, 1, 0], peak_age_h=6, forecast=[14, 20, 8, 3]),
 }
 _AMP = {"glacier": 0.07, "snow": 0.035, "mixed": 0.025, "rain": 0.0}
 
