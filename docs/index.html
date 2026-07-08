@@ -47,7 +47,8 @@
   .gmark { position:absolute; top:-3px; width:3px; height:18px; background:var(--fg); border-radius:2px;
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }
   .glabels { display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted);
-              margin:0 0 8px; letter-spacing:.03em; }
+              margin:0 0 2px; letter-spacing:.03em; }
+  .gbasis { font-size:.6rem; color:var(--muted); margin:0 0 8px; font-style:italic; }
   .chart { width:100%; height:auto; margin:2px 0 6px; }
   .chart-empty { font-size:.75rem; color:var(--muted); padding:22px 0; text-align:center; }
   .ax { fill:var(--muted); font-size:8px; }
@@ -76,102 +77,109 @@
 <body>
 <div class="wrap">
   <h1>🎣 BC Salmon River Conditions</h1>
-  <p class="sub">Live level/flow · 1-3 day ML forecast · rain outlook. Updated Jul 08, 2026 18:32 UTC.
+  <p class="sub">Live level/flow · 1-3 day ML forecast · rain outlook. Updated Jul 08, 2026 18:35 UTC.
      Auto-refreshes every 30 min. Not a safety guarantee — check conditions yourself.</p>
-  <div class="hero none"><b>No live data right now.</b> Check back shortly.</div>
-  <div class="tiles"><div class="tile" style="--c:#8a94a6"><span class="tn">7</span><span class="tl">NO DATA</span></div></div>
+  <div class="hero" style="--h:#2e9e5b"><span class="htag">🟢 BEST BET</span><b>Fraser River at Hope</b> — 4,840 cms — in the zone. Good to fish. 🎣</div>
+  <div class="tiles"><div class="tile" style="--c:#2e9e5b"><span class="tn">4</span><span class="tl">GO FISH</span></div><div class="tile" style="--c:#2f74d0"><span class="tn">1</span><span class="tl">TOO LOW</span></div><div class="tile" style="--c:#d64545"><span class="tn">2</span><span class="tl">BLOWN OUT</span></div></div>
   <section><h2 class="region">Fraser Valley</h2><div class="grid">
-    <article class="card" style="--accent:#8a94a6">
-      <header><h3>Fraser River at Hope</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card" style="--accent:#2e9e5b">
+      <header><h3>Fraser River at Hope</h3><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">4,840 cms</span><span class="trend">→ steady</span>
+        <span class="asof">25m ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:48.4%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:58.1%;width:32.3%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:90.3%;width:9.7%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:55.5%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent flow and forecast"><rect x="34" y="15.8" width="258" height="78.3" fill="#2e9e5b" opacity="0.13"/><text x="2" y="16.0" class="ax">5.3k</text><text x="2" y="102.0" class="ax">1.7k</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,19.2 39.2,19.5 44.3,20.3 49.5,19.5 54.6,19.5 59.8,19.5 65.0,19.5 70.1,19.5 75.3,19.5 80.4,19.8 85.6,18.7 90.8,19.2 95.9,19.8 101.1,19.8 106.2,20.0 111.4,19.2 116.6,20.0 121.7,20.3 126.9,19.5 132.0,19.2 137.2,18.4 142.4,19.2 147.5,19.5 152.7,20.0 157.8,19.2 163.0,19.2 168.2,19.0 173.3,20.3 178.5,19.0 183.6,19.0 188.8,19.0 194.0,19.8 199.1,19.2 204.3,19.8 209.4,19.2 214.6,19.8 219.8,19.2 224.9,19.0 230.1,19.0 235.2,19.8 240.4,19.5 245.6,19.2 250.7,19.5 255.9,19.0 261.0,19.2 266.2,19.0 271.4,19.5 276.5,20.0"/><circle cx="276.5" cy="20.0" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,20.0 281.7,19.5 286.8,19.6 292.0,19.8"/><circle cx="281.7" cy="19.5" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 4,861 cms (GO FISH)</title></circle><circle cx="286.8" cy="19.6" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 4,857 cms (GO FISH)</title></circle><circle cx="292.0" cy="19.8" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 4,849 cms (GO FISH)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 4,861 cms</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 4,857 cms</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 4,849 cms</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+19%)</span></div>
+      <p class="headline">4,840 cms — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days. Next 3 days: little/no rain (2 mm).</p>
       
       <div class="tags"><span class="tag">sockeye</span><span class="tag">pink</span><span class="tag">chinook</span></div>
       <footer><span>Fraser Valley</span><span>Station 08MF005</span></footer>
     </article></div></section><section><h2 class="region">Lower Mainland</h2><div class="grid">
-    <article class="card dim" style="--accent:#8a94a6">
-      <header><h3>Vedder / Chilliwack River</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card dim" style="--accent:#2e9e5b">
+      <header><h3>Vedder / Chilliwack River</h3><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">1.90 m</span><span class="trend">→ steady</span>
+        <span class="asof">1h ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:51.8%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:61.5%;width:28.8%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:90.3%;width:9.7%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:50.0%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent level and forecast"><rect x="34" y="15.8" width="258" height="78.3" fill="#2e9e5b" opacity="0.13"/><text x="2" y="16.0" class="ax">2.2</text><text x="2" y="102.0" class="ax">1.1</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,33.4 39.2,33.4 44.3,33.5 49.5,33.3 54.6,33.5 59.8,33.4 65.0,33.6 70.1,33.5 75.3,33.6 80.4,33.6 85.6,33.7 90.8,33.8 95.9,33.6 101.1,33.7 106.2,33.8 111.4,33.6 116.6,33.7 121.7,33.7 126.9,33.5 132.0,33.6 137.2,33.6 142.4,33.6 147.5,33.7 152.7,33.8 157.8,33.8 163.0,33.8 168.2,33.8 173.3,33.9 178.5,34.0 183.6,34.1 188.8,34.0 194.0,34.1 199.1,34.1 204.3,34.3 209.4,34.2 214.6,34.2 219.8,34.2 224.9,34.2 230.1,34.2 235.2,34.4 240.4,34.2 245.6,34.2 250.7,34.0 255.9,34.0 261.0,33.9 266.2,33.5 271.4,33.4 276.5,33.4"/><circle cx="276.5" cy="33.4" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,33.4 281.7,34.1 286.8,34.1 292.0,34.1"/><circle cx="281.7" cy="34.1" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 1.89 m (GO FISH)</title></circle><circle cx="286.8" cy="34.1" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 1.89 m (GO FISH)</title></circle><circle cx="292.0" cy="34.1" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 1.89 m (GO FISH)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 1.89 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 1.89 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 1.89 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+16%)</span></div>
+      <p class="headline">1.90 m — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days. Next 3 days: little/no rain (1 mm).</p>
       
       <div class="tags"><span class="tag off">off-season</span><span class="tag">coho</span><span class="tag">chum</span><span class="tag">chinook</span><span class="tag">steelhead</span></div>
       <footer><span>Lower Mainland</span><span>Station 08MH001</span></footer>
     </article>
 
-    <article class="card dim" style="--accent:#8a94a6">
-      <header><h3>Coquitlam River</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card dim" style="--accent:#d64545">
+      <header><h3>Coquitlam River</h3><span class="badge">🔴 BLOWN OUT</span></header>
+      <div class="topline"><span class="num">7.65 m</span><span class="trend">→ steady</span>
+        <span class="asof">30m ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:7.8%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:17.5%;width:6.7%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:24.1%;width:75.9%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:90.3%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent level and forecast"><rect x="34" y="86.6" width="258" height="7.5" fill="#2e9e5b" opacity="0.13"/><line x1="34" y1="80.2" x2="292" y2="80.2" stroke="#d64545" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/><text x="2" y="16.0" class="ax">8.4</text><text x="2" y="102.0" class="ax">-0.3</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,16.0 39.2,16.0 44.3,16.0 49.5,16.0 54.6,16.0 59.8,16.0 65.0,16.0 70.1,16.0 75.3,16.0 80.4,16.0 85.6,16.0 90.8,16.0 95.9,16.0 101.1,16.0 106.2,16.0 111.4,16.0 116.6,16.0 121.7,16.0 126.9,16.0 132.0,16.0 137.2,16.0 142.4,16.1 147.5,16.1 152.7,16.1 157.8,16.1 163.0,16.1 168.2,16.1 173.3,16.0 178.5,16.1 183.6,16.1 188.8,16.1 194.0,16.1 199.1,16.1 204.3,16.1 209.4,16.1 214.6,16.1 219.8,16.1 224.9,16.1 230.1,16.1 235.2,16.1 240.4,16.1 245.6,16.1 250.7,16.1 255.9,16.1 261.0,16.1 266.2,16.1 271.4,16.1 276.5,16.1"/><circle cx="276.5" cy="16.1" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,16.1 281.7,15.9 286.8,15.9 292.0,15.8"/><circle cx="281.7" cy="15.9" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 7.66 m (BLOWN OUT)</title></circle><circle cx="286.8" cy="15.9" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 7.66 m (BLOWN OUT)</title></circle><circle cx="292.0" cy="15.8" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 7.67 m (BLOWN OUT)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#d64545" title="BLOWN OUT">tomorrow: 7.66 m</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 2 days: 7.66 m</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 3 days: 7.67 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+22%)</span></div>
+      <p class="headline">7.65 m — too high / likely dirty. Sit this one out.</p>
+      <p class="outlook">Model: ~7.66 m tomorrow (blown out).</p>
       
       <div class="tags"><span class="tag off">off-season</span><span class="tag">chum</span><span class="tag">coho</span><span class="tag">chinook</span></div>
       <footer><span>Lower Mainland</span><span>Station 08MH002</span></footer>
     </article></div></section><section><h2 class="region">North Coast</h2><div class="grid">
-    <article class="card" style="--accent:#8a94a6">
-      <header><h3>Skeena River at Usk</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card" style="--accent:#2e9e5b">
+      <header><h3>Skeena River at Usk</h3><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">1,770 cms</span><span class="trend">↑ rising</span>
+        <span class="asof">1h ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:42.8%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:52.5%;width:37.8%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:90.3%;width:9.7%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:34.1%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent flow and forecast"><rect x="34" y="15.8" width="258" height="78.3" fill="#2e9e5b" opacity="0.13"/><text x="2" y="16.0" class="ax">2.7k</text><text x="2" y="102.0" class="ax">630</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,50.9 39.2,51.3 44.3,50.9 49.5,50.9 54.6,51.3 59.8,51.3 65.0,50.9 70.1,50.9 75.3,50.9 80.4,50.9 85.6,50.9 90.8,50.9 95.9,50.9 101.1,50.4 106.2,50.4 111.4,50.4 116.6,50.4 121.7,50.4 126.9,50.9 132.0,50.4 137.2,50.4 142.4,50.4 147.5,50.4 152.7,50.4 157.8,50.4 163.0,50.4 168.2,50.4 173.3,50.4 178.5,49.9 183.6,49.9 188.8,49.9 194.0,50.4 199.1,49.9 204.3,49.9 209.4,49.9 214.6,49.9 219.8,49.5 224.9,49.9 230.1,49.5 235.2,49.5 240.4,49.5 245.6,49.9 250.7,49.5 255.9,49.5 261.0,49.5 266.2,49.0 271.4,49.0 276.5,49.5"/><circle cx="276.5" cy="49.5" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,49.5 281.7,43.9 286.8,43.8 292.0,45.8"/><circle cx="281.7" cy="43.9" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 1,891 cms (GO FISH)</title></circle><circle cx="286.8" cy="43.8" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 1,893 cms (GO FISH)</title></circle><circle cx="292.0" cy="45.8" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 1,850 cms (GO FISH)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 1,891 cms</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 1,893 cms</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 1,850 cms</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+8%)</span></div>
+      <p class="headline">1,770 cms — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days.</p>
       
       <div class="tags"><span class="tag">chinook</span><span class="tag">sockeye</span><span class="tag">coho</span><span class="tag">steelhead</span></div>
       <footer><span>North Coast</span><span>Station 08EF001</span></footer>
     </article></div></section><section><h2 class="region">North Shore</h2><div class="grid">
-    <article class="card dim" style="--accent:#8a94a6">
-      <header><h3>Capilano River</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card dim" style="--accent:#2e9e5b">
+      <header><h3>Capilano River</h3><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">0.74 m</span><span class="trend">→ steady</span>
+        <span class="asof">25m ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:44.0%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:53.7%;width:36.7%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:90.3%;width:9.7%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:41.9%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent level and forecast"><rect x="34" y="15.8" width="258" height="78.3" fill="#2e9e5b" opacity="0.13"/><text x="2" y="16.0" class="ax">1.0</text><text x="2" y="102.0" class="ax">0.2</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,35.9 39.2,35.9 44.3,35.9 49.5,35.9 54.6,35.9 59.8,35.9 65.0,35.9 70.1,35.9 75.3,35.9 80.4,35.9 85.6,35.9 90.8,35.9 95.9,35.9 101.1,35.9 106.2,35.9 111.4,35.9 116.6,35.9 121.7,35.9 126.9,35.9 132.0,35.9 137.2,35.9 142.4,35.9 147.5,35.9 152.7,35.9 157.8,35.9 163.0,35.9 168.2,35.9 173.3,35.9 178.5,35.9 183.6,35.9 188.8,35.9 194.0,35.9 199.1,35.9 204.3,35.9 209.4,35.9 214.6,35.9 219.8,35.9 224.9,35.9 230.1,35.9 235.2,35.9 240.4,35.9 245.6,35.9 250.7,35.9 255.9,36.1 261.0,36.1 266.2,36.1 271.4,36.1 276.5,36.1"/><circle cx="276.5" cy="36.1" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,36.1 281.7,31.5 286.8,28.9 292.0,26.3"/><circle cx="281.7" cy="31.5" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 0.78 m (GO FISH)</title></circle><circle cx="286.8" cy="28.9" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 0.80 m (GO FISH)</title></circle><circle cx="292.0" cy="26.3" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 0.82 m (GO FISH)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 0.78 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 0.80 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 0.82 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+34%)</span></div>
+      <p class="headline">0.74 m — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days.</p>
       
       <div class="tags"><span class="tag off">off-season</span><span class="tag">coho</span><span class="tag">chum</span><span class="tag">steelhead</span></div>
       <footer><span>North Shore</span><span>Station 08GA010</span></footer>
-    </article></div></section><section><h2 class="region">Sea-to-Sky</h2><div class="grid">
-    <article class="card dim" style="--accent:#8a94a6">
-      <header><h3>Squamish River</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
-      
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
-      
-      <div class="tags"><span class="tag off">off-season</span><span class="tag">chum</span><span class="tag">coho</span><span class="tag">pink</span><span class="tag">steelhead</span></div>
-      <footer><span>Sea-to-Sky</span><span>Station 08GA022</span></footer>
     </article></div></section><section><h2 class="region">Vancouver Island</h2><div class="grid">
-    <article class="card dim" style="--accent:#8a94a6">
-      <header><h3>Cowichan River</h3><span class="badge">⚪ NO DATA</span></header>
-      <div class="topline"><span class="num">—</span><span class="trend">· unknown</span>
-        <span class="asof"></span></div>
+    <article class="card dim" style="--accent:#2f74d0">
+      <header><h3>Cowichan River</h3><span class="badge">🔵 TOO LOW</span></header>
+      <div class="topline"><span class="num">0.17 m</span><span class="trend">↓ falling</span>
+        <span class="asof">1h ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:33.0%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:33.0%;width:30.8%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:63.9%;width:26.4%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:90.3%;width:9.7%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:9.7%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
       
-      <div class="chart-empty">no recent readings</div>
-      
-      <p class="headline">No recent data from the station.</p>
-      <p class="outlook"></p>
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent level and forecast"><rect x="34" y="15.8" width="258" height="44.1" fill="#2e9e5b" opacity="0.13"/><text x="2" y="16.0" class="ax">1.5</text><text x="2" y="102.0" class="ax">0.0</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,93.8 39.2,93.4 44.3,93.2 49.5,93.0 54.6,92.8 59.8,92.8 65.0,93.0 70.1,93.3 75.3,93.6 80.4,93.8 85.6,93.9 90.8,93.7 95.9,93.5 101.1,93.2 106.2,93.0 111.4,93.2 116.6,93.4 121.7,93.7 126.9,93.8 132.0,93.7 137.2,93.4 142.4,93.2 147.5,93.1 152.7,93.1 157.8,93.4 163.0,93.7 168.2,93.9 173.3,93.8 178.5,93.5 183.6,93.2 188.8,93.1 194.0,93.1 199.1,93.3 204.3,93.7 209.4,93.8 214.6,93.9 219.8,93.9 224.9,93.9 230.1,93.9 235.2,94.0 240.4,94.2 245.6,94.0 250.7,94.0 255.9,94.0 261.0,93.8 266.2,93.5 271.4,93.3 276.5,93.1"/><circle cx="276.5" cy="93.1" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,93.1 281.7,93.4 286.8,94.0 292.0,94.0"/><circle cx="281.7" cy="93.4" r="3.5" fill="#2f74d0" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 0.17 m (TOO LOW)</title></circle><circle cx="286.8" cy="94.0" r="3.5" fill="#2f74d0" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 0.16 m (TOO LOW)</title></circle><circle cx="292.0" cy="94.0" r="3.5" fill="#2f74d0" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 0.16 m (TOO LOW)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#2f74d0" title="TOO LOW">tomorrow: 0.17 m</span><span class="chip" style="--c:#2f74d0" title="TOO LOW">in 2 days: 0.16 m</span><span class="chip" style="--c:#2f74d0" title="TOO LOW">in 3 days: 0.16 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+23%)</span></div>
+      <p class="headline">0.17 m — too low. Needs water.</p>
+      <p class="outlook">Model: ~0.17 m tomorrow (too low). Next 3 days: little/no rain (0 mm).</p>
       
       <div class="tags"><span class="tag off">off-season</span><span class="tag">coho</span><span class="tag">chinook</span><span class="tag">steelhead</span><span class="tag">brown trout</span></div>
       <footer><span>Vancouver Island</span><span>Station 08HA011</span></footer>
+    </article></div></section><section><h2 class="region">Sea-to-Sky</h2><div class="grid">
+    <article class="card dim" style="--accent:#d64545">
+      <header><h3>Squamish River</h3><span class="badge">🔴 BLOWN OUT</span></header>
+      <div class="topline"><span class="num">3.74 m</span><span class="trend">↑ rising</span>
+        <span class="asof">30m ago</span></div>
+      <div class="gauge" title="current position between low and blown-out"><div style="position:absolute;left:0.0%;width:9.7%;top:0;bottom:0;background:#2f74d0;opacity:.55"></div><div style="position:absolute;left:9.7%;width:29.4%;top:0;bottom:0;background:#2e9e5b;opacity:.55"></div><div style="position:absolute;left:39.1%;width:23.5%;top:0;bottom:0;background:#d97706;opacity:.55"></div><div style="position:absolute;left:62.7%;width:37.3%;top:0;bottom:0;background:#d64545;opacity:.55"></div><div class="gmark" style="left:90.3%"></div></div><div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>
+      
+      <svg class="chart" viewBox="0 0 300 118" role="img" aria-label="recent level and forecast"><rect x="34" y="66.0" width="258" height="28.2" fill="#2e9e5b" opacity="0.13"/><line x1="34" y1="43.4" x2="292" y2="43.4" stroke="#d64545" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/><text x="2" y="16.0" class="ax">4.1</text><text x="2" y="102.0" class="ax">0.7</text><line x1="276.5" y1="8" x2="276.5" y2="102" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="34.0,16.6 39.2,16.5 44.3,16.5 49.5,16.5 54.6,16.5 59.8,16.5 65.0,16.5 70.1,16.5 75.3,16.5 80.4,16.6 85.6,16.6 90.8,16.5 95.9,16.5 101.1,16.5 106.2,16.6 111.4,16.6 116.6,16.6 121.7,16.6 126.9,16.6 132.0,16.7 137.2,16.6 142.4,16.6 147.5,16.7 152.7,16.7 157.8,16.7 163.0,16.6 168.2,16.7 173.3,16.6 178.5,16.6 183.6,16.8 188.8,16.7 194.0,16.7 199.1,16.7 204.3,16.6 209.4,16.7 214.6,16.8 219.8,16.8 224.9,16.7 230.1,16.7 235.2,16.7 240.4,16.8 245.6,16.8 250.7,16.8 255.9,16.8 261.0,16.8 266.2,16.8 271.4,16.9 276.5,16.9"/><circle cx="276.5" cy="16.9" r="3" fill="#2563eb" stroke="var(--card)" stroke-width="1.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.5,16.9 281.7,17.2 286.8,17.0 292.0,15.8"/><circle cx="281.7" cy="17.2" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 3.73 m (BLOWN OUT)</title></circle><circle cx="286.8" cy="17.0" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 3.74 m (BLOWN OUT)</title></circle><circle cx="292.0" cy="15.8" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 3.78 m (BLOWN OUT)</title></circle><text x="34.0" y="115" class="ax">-2d</text><text x="276.5" y="115" class="ax" text-anchor="middle">now</text><text x="292.0" y="115" class="ax" text-anchor="end">+3d</text></svg>
+      <div class="chips"><span class="chip" style="--c:#d64545" title="BLOWN OUT">tomorrow: 3.73 m</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 2 days: 3.74 m</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 3 days: 3.78 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+16%)</span></div>
+      <p class="headline">3.74 m — too high / likely dirty. Sit this one out.</p>
+      <p class="outlook">Model: ~3.73 m tomorrow (blown out). Next 3 days: light rain (7 mm).</p>
+      
+      <div class="tags"><span class="tag off">off-season</span><span class="tag">chum</span><span class="tag">coho</span><span class="tag">pink</span><span class="tag">steelhead</span></div>
+      <footer><span>Sea-to-Sky</span><span>Station 08GA022</span></footer>
     </article></div></section>
   <div class="legend">
     <span class="lg-obs">observed</span>
