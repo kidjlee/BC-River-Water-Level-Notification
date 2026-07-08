@@ -36,7 +36,7 @@ _ZONE_COLORS = {"low": "#2f74d0", "good": "#2e9e5b", "high": "#d97706", "blown":
 
 
 def _fmt(v: float, unit: str) -> str:
-    return f"{v:.2f} m" if unit == "m" else f"{v:,.0f} cms"
+    return f"{v:.3f} m" if unit == "m" else f"{v:,.0f} cms"
 
 
 def _rel_time(updated: str | None, now: datetime) -> str:

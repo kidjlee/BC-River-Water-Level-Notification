@@ -243,14 +243,14 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
             day_forecasts.append(DayForecast(day=p.horizon_days, value=p.value, verdict=v, label=_labels(p.horizon_days)))
 
     outlook = _outlook(zone, trend, rain, day_forecasts, unit)
-    return Assessment(**base, verdict=verdict, value=round(value, 2), trend=trend,
+    return Assessment(**base, verdict=verdict, value=round(value, 3), trend=trend,
                       rate_per_h=(round(rate, 3) if rate is not None else None),
                       headline=headline, outlook=outlook, zone=zone, updated=ts.isoformat(),
                       best_time=best_time, forecast=day_forecasts, forecast_skill=skill)
 
 
 def _headline(verdict: str, value: float, unit: str, trend: str) -> str:
-    v = f"{value:.2f} m" if unit == "m" else f"{value:,.0f} cms"
+    v = f"{value:.3f} m" if unit == "m" else f"{value:,.0f} cms"
     return {
         "BLOWN_OUT": f"{v} — too high / likely dirty. Sit this one out.",
         "GET_READY": (f"{v} and dropping — clearing into shape soon." if trend == "falling"
