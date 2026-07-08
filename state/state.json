@@ -3,5 +3,7 @@
   "08MF005": "GO",
   "08HA011": "TOO_LOW",
   "08GA022": "BLOWN_OUT",
-  "08EF001": "GO"
+  "08EF001": "GO",
+  "08GA010": "GO",
+  "08MH002": "BLOWN_OUT"
 }
