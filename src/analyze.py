@@ -44,6 +44,20 @@ def _load_monthly() -> dict:
 _MONTHLY = _load_monthly()
 
 
+def _load_diag() -> dict:
+    """Gauge-quality flags from tools/diagnose.py (OK / TIDAL / FLAT / SPARSE)."""
+    p = Path("config/diagnostics.json")
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+_DIAG = _load_diag()
+
+
 def effective_thresholds(river: dict, month: int) -> tuple[float, float, float, str]:
     """Zones to use now: the station's calibrated thresholds for THIS month if
     available (so a 'normal' September level isn't judged by November's water),
@@ -86,6 +100,8 @@ class Assessment:
     species: list = field(default_factory=list)
     in_season: bool = True
     threshold_basis: str = ""   # e.g. "Jul normal" when month-calibrated zones are used
+    gauge_quality: str = "OK"   # OK / TIDAL / FLAT / SPARSE (from diagnose.py)
+    gauge_note: str = ""
 
     @property
     def emoji(self) -> str:
@@ -210,7 +226,9 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
     base = dict(river=name, station=station, metric=metric, unit=unit,
                 good_low=gl, good_high=gh, blown_out=bl,
                 region=river.get("region", ""), species=river.get("species", []),
-                in_season=(month in season), threshold_basis=basis)
+                in_season=(month in season), threshold_basis=basis,
+                gauge_quality=_DIAG.get(station, {}).get("quality", "OK"),
+                gauge_note=_DIAG.get(station, {}).get("note", ""))
 
     if latest is None:
         return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,

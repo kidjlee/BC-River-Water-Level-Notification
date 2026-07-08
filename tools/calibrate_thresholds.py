@@ -93,6 +93,9 @@ def main(argv=None) -> int:
         for river in cfg.get("rivers", []):
             if args.station and river["station"] != args.station:
                 continue
+            if river.get("manual"):   # hand-set thresholds — never auto-calibrate
+                print(f"{river['name']}: manual — skipped")
+                continue
             try:
                 mt = monthly_table(river, args.low, args.high, args.blown)
             except Exception as e:
@@ -110,6 +113,9 @@ def main(argv=None) -> int:
         if args.station and river["station"] != args.station:
             continue
         if args.unverified_only and river.get("verified"):
+            continue
+        if river.get("manual"):   # hand-set thresholds — never auto-calibrate
+            print(f"{river['name']}: manual — skipped")
             continue
         try:
             s = suggest(river, args.low, args.high, args.blown)

@@ -31,6 +31,9 @@ jobs:
       - name: Calibrate per-month thresholds for all rivers
         run: python tools/calibrate_thresholds.py --monthly
 
+      - name: Diagnose gauge quality (flag tidal/flat gauges)
+        run: python tools/diagnose.py || true
+
       - name: Train any missing models
         run: python tools/train_forecast.py --missing-only || true
 
@@ -41,7 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml config/thresholds_monthly.json docs/index.html state/state.json
+          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json docs/index.html state/state.json
           git add -f models/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Nothing to commit."; exit 0

@@ -192,6 +192,8 @@ def _card(a: Assessment, data: StationData, now: datetime) -> str:
     rel = _rel_time(a.updated, now)
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
     basis = f'<div class="gbasis">zones: {html.escape(a.threshold_basis)}</div>' if a.threshold_basis else ""
+    warn = (f'<p class="warn">⚠️ {a.gauge_quality} gauge — {html.escape(a.gauge_note)}. '
+            f'Treat this verdict with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
     dim = "" if a.in_season else " dim"
     return f"""
     <article class="card{dim}" style="--accent:{color}">
@@ -203,6 +205,7 @@ def _card(a: Assessment, data: StationData, now: datetime) -> str:
       {_chart(a, data)}
       {_forecast_chips(a)}
       <p class="headline">{html.escape(a.headline)}</p>
+      {warn}
       <p class="outlook">{html.escape(a.outlook)}</p>
       {best}
       {_tags(a)}
@@ -320,6 +323,9 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
   .skill {{ font-size:.66rem; color:var(--muted); align-self:center; }}
   .headline {{ margin:5px 0; font-weight:650; font-size:.95rem; }}
   .outlook {{ margin:5px 0; font-size:.84rem; color:var(--muted); }}
+  .warn {{ margin:6px 0; font-size:.78rem; color:#b45309; background:color-mix(in srgb, #d97706 12%, transparent);
+           border-radius:8px; padding:6px 9px; }}
+  @media (prefers-color-scheme: dark) {{ .warn {{ color:#f0b866; }} }}
   .best {{ margin:6px 0; font-size:.8rem; background:color-mix(in srgb, var(--accent) 10%, transparent);
            border-radius:8px; padding:6px 9px; }}
   .tags {{ display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 2px; }}
