@@ -31,16 +31,24 @@ CONFIG = ROOT / "config/rivers.yaml"
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 
 
-def fetch_precip(lat, lon, start, end, timeout=90):
+def fetch_precip(lat, lon, start, end, timeout=120, retries=3):
     params = {
         "latitude": lat, "longitude": lon,
         "start_date": start, "end_date": end,
         "daily": "precipitation_sum", "timezone": "America/Vancouver",
     }
-    r = requests.get(ARCHIVE_URL, params=params, timeout=timeout)
-    r.raise_for_status()
-    d = r.json().get("daily", {})
-    return dict(zip(d.get("time", []), [x or 0.0 for x in d.get("precipitation_sum", [])]))
+    last = None
+    for attempt in range(retries):
+        try:
+            r = requests.get(ARCHIVE_URL, params=params, timeout=timeout)
+            r.raise_for_status()
+            d = r.json().get("daily", {})
+            return dict(zip(d.get("time", []), [x or 0.0 for x in d.get("precipitation_sum", [])]))
+        except Exception as e:  # transient archive timeouts are common; back off and retry
+            last = e
+            import time
+            time.sleep(2 ** attempt)
+    raise last
 
 
 def train_river(river) -> str:
@@ -69,10 +77,15 @@ def train_river(river) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--station", help="only this station number")
+    ap.add_argument("--missing-only", action="store_true",
+                    help="skip stations that already have a trained model")
     args = ap.parse_args(argv)
     cfg = yaml.safe_load(CONFIG.read_text())
     for river in cfg.get("rivers", []):
         if args.station and river["station"] != args.station:
+            continue
+        if args.missing_only and (forecast.MODELS_DIR / f"{river['station']}.json").exists():
+            print(f"{river['name']}: model present — skipping")
             continue
         try:
             print(train_river(river))

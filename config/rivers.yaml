@@ -30,10 +30,10 @@ defaults:
 
 rivers:
   - name: "Vedder / Chilliwack River"
-    station: "08MH001"          # Chilliwack R at Vedder Crossing (VERIFY)
-    verified: false
-    lat: 49.093
-    lon: -121.961
+    station: "08MH001"          # Chilliwack R at Vedder Crossing (verified)
+    verified: true
+    lat: 49.09738
+    lon: -121.96748
     metric: level
     fed_by: mixed
     season_months: [9, 10, 11, 12]
@@ -44,10 +44,10 @@ rivers:
     notes: "Prime on the drop after a rain bump, once it clears. A >1 m rise blows it out."
 
   - name: "Fraser River at Hope"
-    station: "08MF005"          # Fraser R at Hope (VERIFY)
-    verified: false
-    lat: 49.386
-    lon: -121.451
+    station: "08MF005"          # Fraser R at Hope (verified)
+    verified: true
+    lat: 49.38596
+    lon: -121.45424
     metric: flow               # discussed in m^3/s, not level
     fed_by: snow
     season_months: [7, 8, 9, 10]
@@ -58,10 +58,10 @@ rivers:
     notes: "Bar fishing; lower/clearer is better. Freshet peaks 7000-11000 cms."
 
   - name: "Cowichan River"
-    station: "08HA011"          # Cowichan R near Duncan (VERIFY)
-    verified: false
-    lat: 48.781
-    lon: -123.678
+    station: "08HA011"          # Cowichan R near Duncan (verified)
+    verified: true
+    lat: 48.77308
+    lon: -123.71447
     metric: level
     fed_by: rain
     season_months: [10, 11, 12]
@@ -72,10 +72,10 @@ rivers:
     notes: "Low-water summer fishery; needs fall rain to fire up."
 
   - name: "Squamish River"
-    station: "08GA022"          # Squamish R near Brackendale (VERIFY)
-    verified: false
-    lat: 49.792
-    lon: -123.152
+    station: "08GA022"          # Squamish R near Brackendale (verified)
+    verified: true
+    lat: 49.79502
+    lon: -123.20316
     metric: level
     fed_by: glacier
     season_months: [8, 9, 10, 11]
@@ -86,10 +86,10 @@ rivers:
     notes: "Glacial; afternoon melt raises + dirties it. Best fished early."
 
   - name: "Skeena River at Usk"
-    station: "08EF001"          # Skeena R at Usk (VERIFY)
-    verified: false
-    lat: 54.632
-    lon: -128.433
+    station: "08EF001"          # Skeena R at Usk (verified)
+    verified: true
+    lat: 54.63726
+    lon: -128.40826
     metric: flow
     fed_by: snow
     season_months: [7, 8, 9, 10]

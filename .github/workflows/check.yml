@@ -37,14 +37,8 @@ jobs:
       - name: Verify station IDs (non-fatal — shows which are valid)
         run: python tools/discover_stations.py --verify 08MH001 08MF005 08HA011 08GA022 08EF001 || true
 
-      - name: Train models on first run (real history)
-        run: |
-          if [ -z "$(ls models/*.json 2>/dev/null)" ]; then
-            echo "No models yet — training from history..."
-            python tools/train_forecast.py || true
-          else
-            echo "Models present — skipping training."
-          fi
+      - name: Train any missing models (real history)
+        run: python tools/train_forecast.py --missing-only || true
 
       - name: Run check
         env:

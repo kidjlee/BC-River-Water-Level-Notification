@@ -1,28 +1,18 @@
-"""Fetch real-time water level data from Environment and Climate Change Canada.
+"""Fetch real-time water data from Environment and Climate Change Canada.
 
-Two free, no-API-key sources are supported:
-
-  * MSC Datamart CSV  (default) - one file per station, last ~2 days of readings.
-        https://dd.weather.gc.ca/hydrometric/csv/BC/hourly/BC_<ID>_hourly_hydrometric.csv
-  * GeoMet OGC API    - GeoJSON, used by tools/discover_stations.py for lookups.
-        https://api.weather.gc.ca/collections/hydrometric-realtime
-
-We parse the CSV defensively: column order/labels vary slightly (bilingual
-headers), so we locate columns by matching on substrings rather than index.
+Uses the GeoMet OGC API `hydrometric-realtime` collection (free, no key) — the
+same reliable endpoint used to verify stations. Each feature carries DATETIME,
+LEVEL (m) and DISCHARGE (cms). We pull the last few days and keep the readings
+that have a value.
 """
 from __future__ import annotations
 
-import csv
-import io
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import requests
 
-DATAMART_CSV = (
-    "https://dd.weather.gc.ca/hydrometric/csv/{prov}/hourly/"
-    "{prov}_{station}_hourly_hydrometric.csv"
-)
+REALTIME_URL = "https://api.weather.gc.ca/collections/hydrometric-realtime/items"
 USER_AGENT = "bc-river-water-level-notifier/1.0 (personal fishing tool)"
 
 
@@ -70,55 +60,37 @@ class StationData:
         return s[-1] if s else None
 
 
-def _find_col(header: list[str], *needles: str) -> int | None:
-    for i, col in enumerate(header):
-        low = col.lower()
-        if all(n.lower() in low for n in needles):
-            return i
-    return None
-
-
-def _parse_float(value: str) -> float | None:
-    value = (value or "").strip()
-    if not value:
+def _to_float(v) -> float | None:
+    if v is None or v == "":
         return None
     try:
-        return float(value)
-    except ValueError:
+        return float(v)
+    except (TypeError, ValueError):
         return None
 
 
-def fetch_station(station: str, prov: str = "BC", timeout: int = 30) -> StationData:
-    """Download and parse the hourly hydrometric CSV for one station."""
-    url = DATAMART_CSV.format(prov=prov, station=station)
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
+def fetch_station(station: str, prov: str = "BC", hours_back: int = 96, timeout: int = 60) -> StationData:
+    """Fetch recent real-time readings for one station via the OGC API."""
+    start = (datetime.now(timezone.utc) - timedelta(hours=hours_back)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    params = {
+        "STATION_NUMBER": station,
+        "datetime": f"{start}/..",
+        "limit": 10000,
+        "sortby": "DATETIME",
+        "f": "json",
+    }
+    resp = requests.get(REALTIME_URL, params=params, headers={"User-Agent": USER_AGENT}, timeout=timeout)
     resp.raise_for_status()
-
-    reader = csv.reader(io.StringIO(resp.text))
-    rows = list(reader)
-    if not rows:
-        return StationData(station=station)
-
-    header = rows[0]
-    date_idx = _find_col(header, "date")
-    level_idx = _find_col(header, "water", "level")
-    if level_idx is None:  # French-only header fallback
-        level_idx = _find_col(header, "niveau")
-    disch_idx = _find_col(header, "discharge")
-    if disch_idx is None:
-        disch_idx = _find_col(header, "débit")
+    feats = resp.json().get("features", [])
 
     data = StationData(station=station)
-    for row in rows[1:]:
-        if date_idx is None or date_idx >= len(row):
-            continue
-        ts = _parse_timestamp(row[date_idx])
+    for f in feats:
+        p = f.get("properties", {})
+        ts = _parse_timestamp(p.get("DATETIME"))
         if ts is None:
             continue
-        level = _parse_float(row[level_idx]) if level_idx is not None and level_idx < len(row) else None
-        disch = _parse_float(row[disch_idx]) if disch_idx is not None and disch_idx < len(row) else None
-        data.readings.append(Reading(timestamp=ts, level_m=level, discharge_cms=disch))
-
+        data.readings.append(Reading(timestamp=ts, level_m=_to_float(p.get("LEVEL")),
+                                     discharge_cms=_to_float(p.get("DISCHARGE"))))
     data.readings.sort(key=lambda r: r.timestamp)
     return data
 
