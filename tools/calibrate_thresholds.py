@@ -14,6 +14,7 @@ numeric threshold lines (and flips `verified: true`), preserving comments.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -25,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from eccc_history import fetch_daily  # noqa: E402
 
 CONFIG = Path("config/rivers.yaml")
+MONTHLY_OUT = Path("config/thresholds_monthly.json")
+MIN_MONTH_SAMPLES = 25   # need this many days-in-month across history to trust it
 
 
 def suggest(river, low_q, high_q, blown_q):
@@ -38,6 +41,23 @@ def suggest(river, low_q, high_q, blown_q):
     gl, gh, bl = np.percentile(arr, [low_q, high_q, blown_q])
     rnd = (lambda x: round(float(x), 2)) if river.get("metric") != "flow" else (lambda x: round(float(x), -1))
     return dict(good_low=rnd(gl), good_high=rnd(gh), blown_out=rnd(bl), n=len(sample), n_season=len(seasonal))
+
+
+def monthly_table(river, low_q, high_q, blown_q) -> dict[str, list[float]]:
+    """Percentile thresholds per calendar month, from that month's own history."""
+    dates, values = fetch_daily(river["station"], river.get("metric", "level"))
+    rnd = (lambda x: round(float(x), 2)) if river.get("metric") != "flow" else (lambda x: round(float(x), -1))
+    by_month: dict[int, list[float]] = {}
+    for d, v in zip(dates, values):
+        by_month.setdefault(int(d[5:7]), []).append(v)
+    table = {}
+    for m, vals in by_month.items():
+        if len(vals) < MIN_MONTH_SAMPLES:
+            continue
+        gl, gh, bl = (rnd(x) for x in np.percentile(vals, [low_q, high_q, blown_q]))
+        if gl < gh < bl:   # keep only sane, monotonic bands
+            table[str(m)] = [gl, gh, bl]
+    return table
 
 
 def _rewrite(text: str, station: str, s: dict) -> str:
@@ -58,6 +78,8 @@ def main(argv=None) -> int:
     ap.add_argument("--station", help="only this station number")
     ap.add_argument("--unverified-only", action="store_true",
                     help="only calibrate rivers with verified: false (keeps curated thresholds)")
+    ap.add_argument("--monthly", action="store_true",
+                    help="write per-month thresholds for every river to thresholds_monthly.json")
     ap.add_argument("--low", type=float, default=25)
     ap.add_argument("--high", type=float, default=60)
     ap.add_argument("--blown", type=float, default=85)
@@ -65,6 +87,25 @@ def main(argv=None) -> int:
 
     cfg = yaml.safe_load(CONFIG.read_text())
     text = CONFIG.read_text()
+
+    if args.monthly:
+        table = {}
+        for river in cfg.get("rivers", []):
+            if args.station and river["station"] != args.station:
+                continue
+            try:
+                mt = monthly_table(river, args.low, args.high, args.blown)
+            except Exception as e:
+                print(f"{river['name']}: FAILED ({e})")
+                continue
+            if mt:
+                table[river["station"]] = mt
+                print(f"{river['name']} ({river['station']}): {len(mt)} months calibrated")
+            else:
+                print(f"{river['name']}: not enough monthly data")
+        MONTHLY_OUT.write_text(json.dumps(table, indent=2, sort_keys=True))
+        print(f"\nWrote per-month thresholds for {len(table)} rivers to {MONTHLY_OUT}")
+        return 0
     for river in cfg.get("rivers", []):
         if args.station and river["station"] != args.station:
             continue

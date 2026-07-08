@@ -18,6 +18,9 @@ permissions:
 jobs:
   train:
     runs-on: ubuntu-latest
+    concurrency:
+      group: main-writer      # shared with check.yml/bootstrap.yml so pushes never race
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,22 +28,29 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
 
-      - name: Calibrate thresholds (optional)
+      - name: Calibrate flat thresholds (optional)
         if: ${{ inputs.calibrate }}
         run: python tools/calibrate_thresholds.py --write
+
+      - name: Refresh per-month thresholds (all rivers)
+        run: python tools/calibrate_thresholds.py --monthly
 
       - name: Train models
         run: python tools/train_forecast.py
 
-      - name: Commit models (+ config if calibrated)
+      - name: Commit models + thresholds
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f models/*.json
-          git add config/rivers.yaml
+          git add config/rivers.yaml config/thresholds_monthly.json
           if git diff --cached --quiet; then
-            echo "Nothing to commit."
-          else
-            git commit -m "Retrain forecast models / calibrate thresholds [skip ci]"
-            git push
+            echo "Nothing to commit."; exit 0
           fi
+          git commit -m "Retrain models + refresh monthly thresholds [skip ci]"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git pull --rebase -X ours origin main || true
+            sleep $((i * 3))
+          done
+          exit 1

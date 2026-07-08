@@ -13,8 +13,10 @@ Transparent rules (not a black box) so you can tune every decision:
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import forecast as fc
@@ -25,6 +27,31 @@ VERDICT_ORDER = ["GO", "GET_READY", "MARGINAL", "TOO_LOW", "BLOWN_OUT", "NO_DATA
 EMOJI = {"GO": "🟢", "GET_READY": "🟡", "MARGINAL": "🟠", "TOO_LOW": "🔵", "BLOWN_OUT": "🔴", "NO_DATA": "⚪"}
 BC_TZ = ZoneInfo("America/Vancouver")
 MELT_FED = {"snow", "glacier"}   # rivers with a real daily melt cycle; rain/mixed don't
+_MONTH_ABBR = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _load_monthly() -> dict:
+    """Per-month thresholds by station (from calibrate_thresholds.py --monthly)."""
+    p = Path("config/thresholds_monthly.json")
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+_MONTHLY = _load_monthly()
+
+
+def effective_thresholds(river: dict, month: int) -> tuple[float, float, float, str]:
+    """Zones to use now: the station's calibrated thresholds for THIS month if
+    available (so a 'normal' September level isn't judged by November's water),
+    else the flat config values. Returns (good_low, good_high, blown_out, basis)."""
+    mt = _MONTHLY.get(river["station"], {}).get(str(month))
+    if mt and len(mt) == 3 and mt[0] < mt[1] < mt[2]:
+        return mt[0], mt[1], mt[2], f"{_MONTH_ABBR[month]} normal"
+    return river["good_low"], river["good_high"], river["blown_out"], ""
 
 
 @dataclass
@@ -58,6 +85,7 @@ class Assessment:
     region: str = ""
     species: list = field(default_factory=list)
     in_season: bool = True
+    threshold_basis: str = ""   # e.g. "Jul normal" when month-calibrated zones are used
 
     @property
     def emoji(self) -> str:
@@ -68,12 +96,12 @@ class Assessment:
         return self.verdict in ("GO", "GET_READY")
 
 
-def _zone(value: float, river: dict) -> str:
-    if value < river["good_low"]:
+def _zone(value: float, gl: float, gh: float, bl: float) -> str:
+    if value < gl:
         return "low"
-    if value <= river["good_high"]:
+    if value <= gh:
         return "good"
-    if value <= river["blown_out"]:
+    if value <= bl:
         return "high"
     return "blown"
 
@@ -178,19 +206,20 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
 
     month = now.astimezone(BC_TZ).month
     season = river.get("season_months") or list(range(1, 13))
+    gl, gh, bl, basis = effective_thresholds(river, month)
     base = dict(river=name, station=station, metric=metric, unit=unit,
-                good_low=river["good_low"], good_high=river["good_high"], blown_out=river["blown_out"],
+                good_low=gl, good_high=gh, blown_out=bl,
                 region=river.get("region", ""), species=river.get("species", []),
-                in_season=(month in season))
+                in_season=(month in season), threshold_basis=basis)
 
     if latest is None:
         return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,
                           headline="No recent data from the station.", outlook="", zone="low", updated=None)
 
     ts, value = latest
-    zone = _zone(value, river)
+    zone = _zone(value, gl, gh, bl)
     trend, rate = _trend(data, metric)
-    width = max(river["good_high"] - river["good_low"], 1e-6)
+    width = max(gh - gl, 1e-6)
     caution_rate = defaults.get("rising_rate_caution_frac_per_h", 0.03) * width
     verdict = _verdict_for_zone(zone, trend, rate, caution_rate)
 
@@ -209,7 +238,7 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
         preds = fc.predict(models, value, d1, d3, rp1, rp3, rcum, doy)
         skill = round(sum(p.skill for p in preds) / len(preds), 2) if preds else None
         for p in preds:
-            z = _zone(p.value, river)
+            z = _zone(p.value, gl, gh, bl)
             v = _verdict_for_zone(z, "steady", None, caution_rate)
             day_forecasts.append(DayForecast(day=p.horizon_days, value=p.value, verdict=v, label=_labels(p.horizon_days)))
 

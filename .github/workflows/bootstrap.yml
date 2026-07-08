@@ -25,8 +25,11 @@ jobs:
       - name: Add Region 2 rivers with a live gauge
         run: python tools/add_region2.py
 
-      - name: Calibrate thresholds for new (unverified) rivers
+      - name: Calibrate flat thresholds for new (unverified) rivers
         run: python tools/calibrate_thresholds.py --write --unverified-only
+
+      - name: Calibrate per-month thresholds for all rivers
+        run: python tools/calibrate_thresholds.py --monthly
 
       - name: Train any missing models
         run: python tools/train_forecast.py --missing-only || true
@@ -38,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml docs/index.html state/state.json
+          git add config/rivers.yaml config/thresholds_monthly.json docs/index.html state/state.json
           git add -f models/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Nothing to commit."; exit 0

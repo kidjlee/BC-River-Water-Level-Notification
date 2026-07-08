@@ -191,6 +191,7 @@ def _card(a: Assessment, data: StationData, now: datetime) -> str:
     val = _fmt(a.value, a.unit) if a.value is not None else "—"
     rel = _rel_time(a.updated, now)
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
+    basis = f'<div class="gbasis">zones: {html.escape(a.threshold_basis)}</div>' if a.threshold_basis else ""
     dim = "" if a.in_season else " dim"
     return f"""
     <article class="card{dim}" style="--accent:{color}">
@@ -198,6 +199,7 @@ def _card(a: Assessment, data: StationData, now: datetime) -> str:
       <div class="topline"><span class="num">{val}</span><span class="trend">{arrow} {a.trend}</span>
         <span class="asof">{html.escape(rel)}</span></div>
       {_gauge(a)}
+      {basis}
       {_chart(a, data)}
       {_forecast_chips(a)}
       <p class="headline">{html.escape(a.headline)}</p>
@@ -307,7 +309,8 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
   .gmark {{ position:absolute; top:-3px; width:3px; height:18px; background:var(--fg); border-radius:2px;
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }}
   .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted);
-              margin:0 0 8px; letter-spacing:.03em; }}
+              margin:0 0 2px; letter-spacing:.03em; }}
+  .gbasis {{ font-size:.6rem; color:var(--muted); margin:0 0 8px; font-style:italic; }}
   .chart {{ width:100%; height:auto; margin:2px 0 6px; }}
   .chart-empty {{ font-size:.75rem; color:var(--muted); padding:22px 0; text-align:center; }}
   .ax {{ fill:var(--muted); font-size:8px; }}
