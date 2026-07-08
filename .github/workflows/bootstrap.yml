@@ -1,0 +1,45 @@
+name: Bootstrap Region 2 rivers
+
+# One-time (manual) job: add DFO Region 2 rivers that have a live gauge,
+# calibrate their thresholds from history, train their models, rebuild the
+# dashboard, and commit. Run from the Actions tab (workflow_dispatch).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+
+      - name: Add Region 2 rivers with a live gauge
+        run: python tools/add_region2.py
+
+      - name: Calibrate thresholds for new (unverified) rivers
+        run: python tools/calibrate_thresholds.py --write --unverified-only
+
+      - name: Train any missing models
+        run: python tools/train_forecast.py --missing-only || true
+
+      - name: Build dashboard
+        run: python -m src.main --no-notify
+
+      - name: Commit everything
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add config/rivers.yaml docs/index.html state/state.json
+          git add -f models/*.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]"
+            git push
+          fi

@@ -9,7 +9,7 @@ name: Check river levels
 # main, the 3-hourly schedule takes over.
 on:
   push:
-    branches: ["claude/salmon-water-level-alerts-ru8e9b"]
+    branches: ["main", "claude/salmon-water-level-alerts-ru8e9b"]
     paths-ignore: ["docs/**", "state/**", "models/**"]   # avoid self-trigger loops
   schedule:
     - cron: "10 * * * *"     # hourly (ECCC real-time updates ~hourly). Only fires from the default branch.

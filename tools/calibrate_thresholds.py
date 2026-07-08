@@ -56,6 +56,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--write", action="store_true", help="update config/rivers.yaml in place")
     ap.add_argument("--station", help="only this station number")
+    ap.add_argument("--unverified-only", action="store_true",
+                    help="only calibrate rivers with verified: false (keeps curated thresholds)")
     ap.add_argument("--low", type=float, default=25)
     ap.add_argument("--high", type=float, default=60)
     ap.add_argument("--blown", type=float, default=85)
@@ -65,6 +67,8 @@ def main(argv=None) -> int:
     text = CONFIG.read_text()
     for river in cfg.get("rivers", []):
         if args.station and river["station"] != args.station:
+            continue
+        if args.unverified_only and river.get("verified"):
             continue
         try:
             s = suggest(river, args.low, args.high, args.blown)
