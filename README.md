@@ -8,36 +8,72 @@ a simple "next few days" outlook driven by the rain forecast. Complex data
 ## How it works
 
 ```
-ECCC water levels ──┐
-                    ├─► analyze (zone + trend + rain) ─► verdict per river ─┬─► notification (email / phone / Discord)
-Open-Meteo rain  ───┘                                                       └─► dashboard (docs/index.html)
+ECCC level/flow ──┐
+Open-Meteo rain ──┼─► analyze (zone + trend + ML forecast + melt cycle) ─► verdict ─┬─► notify (email/phone/Discord)
+per-station model ┘                                                                 └─► dashboard (docs/index.html)
 ```
 
-1. **Data** — real-time water level for each river from Environment and Climate
-   Change Canada (free, no key). Rain forecast from Open-Meteo (free, no key).
-2. **Analyze** — where the level sits vs *your* thresholds, whether it's
-   rising/falling, and how upcoming rain will move it. All plain rules you can
-   read and tune in `src/analyze.py` — no black box.
+1. **Data** — real-time water **level (m)** or **flow (cms)** per river from
+   Environment and Climate Change Canada (free, no key). Rain (past + forecast)
+   from Open-Meteo (free, no key).
+2. **Analyze** — where the value sits vs *your* thresholds, the 24h trend, a
+   **1-3 day ML forecast**, and for snow/glacier rivers the **best time of day**.
+   Plain rules + a transparent model — no black box.
 3. **Notify** — pings you only when a river *newly* becomes fishable (no spam).
-4. **Dashboard** — a web page showing every river at a glance.
+4. **Dashboard** — a web page with a forecast chart, good-zone band, and outlook.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
 
-# 1. Confirm/adjust the station IDs for your rivers (needs internet):
-python tools/discover_stations.py --search chilliwack
-python tools/discover_stations.py --verify 08MH001 08MF005
-#    Edit config/rivers.yaml with the right IDs, coords, and your thresholds.
-
-# 2. Try a run (no alerts, just prints + builds the dashboard):
-python -m src.main --no-notify
+# 0. See it work immediately, offline (synthetic data, trains demo models):
+python -m src.main --demo --no-notify
 open docs/index.html
 
-# 3. Turn on a notification channel (see .env.example), then:
-python -m src.main --force-notify   # test an alert
+# 1. Confirm/adjust station IDs for your rivers (needs internet):
+python tools/discover_stations.py --search chilliwack
+python tools/discover_stations.py --verify 08MH001 08MF005
+
+# 2. Set real, data-driven thresholds from each station's history:
+python tools/calibrate_thresholds.py            # preview
+python tools/calibrate_thresholds.py --write     # apply to config/rivers.yaml
+
+# 3. Train the forecast models (per station, from real history):
+python tools/train_forecast.py                   # writes models/<station>.json
+
+# 4. Live run (builds the dashboard; add a channel from .env.example to alert):
+python -m src.main --no-notify
+python -m src.main --force-notify                # test an alert now
 ```
+
+## The four analysis features
+
+- **Real thresholds** — `tools/calibrate_thresholds.py` sets `good_low`/`good_high`/
+  `blown_out` from percentiles of each station's own salmon-season history
+  (P25/P60/P85 by default). Thresholds live in the metric that fits the river:
+  **level (m)** for small rivers, **flow (cms)** for big ones like the Fraser.
+- **Best time of day** — for `fed_by: snow`/`glacier` rivers, finds the daily
+  low-water (clearest) window from the diurnal melt cycle, after detrending so a
+  multi-day rise can't fake a cycle. Suppressed for rain-fed rivers (no cycle).
+- **ML forecast** — `src/forecast.py` is a numpy ridge regression per station,
+  predicting the level/flow **change 1-3 days out** from recent trend, observed
+  rain, forecast rain, and season. `tools/train_forecast.py` trains it on decades
+  of history; each model reports **skill vs a no-change baseline** (shown on the
+  dashboard). Falls back to the rain heuristic if untrained.
+- **Richer dashboard** — summary tiles, and per river a chart of recent values
+  flowing into the forecast with the good-zone shaded, forecast chips, the
+  best-time window, and a plain-language outlook. Light + dark.
+
+## Testing
+
+```bash
+python tests/test_pipeline.py     # offline: verdicts, flow metric, forecast skill, best-time, dedupe
+python -m src.main --demo         # full offline run with a realistic spread of conditions
+```
+`--demo` needs no network and is the fastest way to see everything working.
+For a true live test, run steps 1-4 above from a machine with internet, or push
+and let the GitHub Actions workflows run.
 
 ## Configure your rivers — `config/rivers.yaml`
 
@@ -72,34 +108,41 @@ dashboard, and sends alerts. Setup:
 3. Optional: **Settings → Pages** → deploy from `main` `/docs` to get a public
    live dashboard URL.
 
-Prefer your own machine? Add a cron entry instead:
+There's also `.github/workflows/train.yml` (weekly + manual) that retrains the
+models and can recalibrate thresholds, committing the results.
+
+Prefer your own machine? Add cron entries instead:
 `0 */3 * * * cd /path/to/repo && python -m src.main`
 
 ## What this does and doesn't do
 
-- ✅ Live status, 24h trend, and a rain-driven 2–3 day outlook.
-- ✅ "Best days ahead" from the precipitation forecast.
-- ⚠️ **Time-of-day** patterns are only meaningful on snow/glacier-fed rivers
-  (afternoon melt); rain-driven coastal rivers don't have a daily cycle, so the
-  outlook focuses on *days*, not hours.
-- ❌ Not a machine-learning level forecast (that's a possible future upgrade —
-  train on historical level + weather). The current outlook is a transparent
-  heuristic.
+- ✅ Live status, 24h trend, a **1-3 day ML forecast** (with measured skill), and
+  a rain-driven outlook.
+- ✅ **Best time of day** on snow/glacier-fed rivers (afternoon melt); suppressed
+  for rain-fed rivers, which have no daily cycle.
+- ⚠️ The forecast is a per-station regression, not a physical hydrological model.
+  It's honest about uncertainty (reports skill vs baseline) and only as good as
+  the history it's trained on. Retrain periodically.
 - ❗ **Not a safety tool.** Always judge conditions yourself on the bank.
 
 ## Project layout
 
 ```
-config/rivers.yaml       your rivers + thresholds
-src/sources.py           fetch ECCC water levels
-src/weather.py           fetch rain forecast (Open-Meteo)
-src/analyze.py           the rules → verdict + outlook
-src/notify.py            email / ntfy / Discord
-src/dashboard.py         generate docs/index.html
-src/state.py             only-alert-on-change
-src/main.py              orchestrator (run this)
+config/rivers.yaml           your rivers, metric, thresholds, fed_by, season
+src/sources.py               fetch ECCC level/flow
+src/weather.py               fetch rain (past + forecast, Open-Meteo)
+src/analyze.py               rules → verdict, best-time, forecast, outlook
+src/forecast.py              ridge-regression forecast model (train/predict)
+src/notify.py                email / ntfy / Discord
+src/dashboard.py             generate docs/index.html (charts, tiles)
+src/state.py                 only-alert-on-change
+src/demo.py                  synthetic data for offline testing
+src/main.py                  orchestrator (run this)
 tools/discover_stations.py   find/verify station IDs
-.github/workflows/check.yml  free scheduled runs
+tools/calibrate_thresholds.py  data-driven thresholds from history
+tools/train_forecast.py      train the forecast models
+tests/test_pipeline.py       offline tests
+.github/workflows/           check.yml (every 3h) + train.yml (weekly)
 ```
 
 ## Data sources

@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+# Trained models are build artifacts; the training workflow force-adds the real
+# ones. This keeps throwaway --demo models out of the repo.
+models/*.json

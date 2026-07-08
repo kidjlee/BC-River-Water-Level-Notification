@@ -1,48 +1,60 @@
-"""Turn raw numbers into a simple fishing verdict + short outlook.
+"""Turn raw numbers into a simple fishing verdict, forecast, and outlook.
 
-This is deliberately transparent (rules, not a black box) so you can reason
-about and tune every decision. The pieces:
+Transparent rules (not a black box) so you can tune every decision:
 
-  * ZONE   - where the current level sits vs your good_low/good_high/blown_out.
-  * TREND  - rising / falling / steady over the last ~24h, and how fast.
-  * VERDICT- one of: GO, GET_READY, MARGINAL, BLOWN_OUT, TOO_LOW, NO_DATA.
-             Combines zone + trend the way an angler would read a gauge:
-             in the zone and steady/dropping after a bump == prime.
-  * OUTLOOK- a plain-language "next few days" line driven by the rain forecast.
+  * ZONE     - where the current value sits vs your good_low/good_high/blown_out
+               (in metres of level, or cms of flow, per the river's `metric`).
+  * TREND    - rising / falling / steady over ~24h.
+  * VERDICT  - GO / GET_READY / MARGINAL / TOO_LOW / BLOWN_OUT / NO_DATA.
+  * FORECAST - projected value + verdict for the next 1-3 days, from the ML
+               model if trained (src/forecast.py), else a rain heuristic.
+  * BEST TIME- for snow/glacier-fed rivers only: the daily low-water window
+               (clearest, most fishable) from the diurnal cycle.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import timedelta
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
+from . import forecast as fc
 from .sources import StationData
 from .weather import RainOutlook
 
-# Verdicts, ordered best -> worst for sorting the dashboard/alerts.
 VERDICT_ORDER = ["GO", "GET_READY", "MARGINAL", "TOO_LOW", "BLOWN_OUT", "NO_DATA"]
+EMOJI = {"GO": "🟢", "GET_READY": "🟡", "MARGINAL": "🟠", "TOO_LOW": "🔵", "BLOWN_OUT": "🔴", "NO_DATA": "⚪"}
+BC_TZ = ZoneInfo("America/Vancouver")
+MELT_FED = {"snow", "glacier"}   # rivers with a real daily melt cycle; rain/mixed don't
 
-EMOJI = {
-    "GO": "🟢",
-    "GET_READY": "🟡",
-    "MARGINAL": "🟠",
-    "TOO_LOW": "🔵",
-    "BLOWN_OUT": "🔴",
-    "NO_DATA": "⚪",
-}
+
+@dataclass
+class DayForecast:
+    day: int            # 1..3
+    value: float
+    verdict: str
+    label: str          # "tomorrow", "in 2 days", ...
 
 
 @dataclass
 class Assessment:
     river: str
     station: str
+    metric: str                 # "level" | "flow"
+    unit: str                   # "m" | "cms"
     verdict: str
-    level_m: float | None
-    trend: str                 # "rising" | "falling" | "steady" | "unknown"
-    rate_m_per_h: float | None
-    headline: str              # one-line summary for a human
-    outlook: str               # next-few-days sentence
-    zone: str                  # "low" | "good" | "high" | "blown"
-    updated: str | None        # ISO timestamp of latest reading
+    value: float | None
+    trend: str
+    rate_per_h: float | None
+    headline: str
+    outlook: str
+    zone: str
+    updated: str | None
+    best_time: str | None = None
+    forecast: list[DayForecast] = field(default_factory=list)
+    forecast_skill: float | None = None
+    good_low: float | None = None
+    good_high: float | None = None
+    blown_out: float | None = None
 
     @property
     def emoji(self) -> str:
@@ -50,119 +62,194 @@ class Assessment:
 
     @property
     def is_alertable(self) -> bool:
-        """Worth pinging the user about right now."""
         return self.verdict in ("GO", "GET_READY")
 
 
-def _zone(level: float, river: dict) -> str:
-    if level < river["good_low"]:
+def _zone(value: float, river: dict) -> str:
+    if value < river["good_low"]:
         return "low"
-    if level <= river["good_high"]:
+    if value <= river["good_high"]:
         return "good"
-    if level <= river["blown_out"]:
+    if value <= river["blown_out"]:
         return "high"
     return "blown"
 
 
-def _trend(data: StationData) -> tuple[str, float | None]:
-    latest = data.latest
+def _verdict_for_zone(zone: str, trend: str, rate: float | None, caution_rate: float) -> str:
+    if zone == "blown":
+        return "BLOWN_OUT"
+    if zone == "high":
+        return "GET_READY" if trend == "falling" else "MARGINAL"
+    if zone == "good":
+        if trend == "rising" and rate is not None and rate > caution_rate:
+            return "MARGINAL"
+        return "GO"
+    return "GET_READY" if trend == "rising" else "TOO_LOW"
+
+
+def _trend(data: StationData, metric: str) -> tuple[str, float | None]:
+    latest = data.latest_metric(metric)
     if latest is None:
         return "unknown", None
-    past = data.level_at_or_before(latest.timestamp - timedelta(hours=24))
-    if past is None or past.timestamp == latest.timestamp:
+    past = data.metric_at_or_before(latest[0] - timedelta(hours=24), metric)
+    if past is None or past[0] == latest[0]:
         return "unknown", None
-    hours = (latest.timestamp - past.timestamp).total_seconds() / 3600.0
+    hours = (latest[0] - past[0]).total_seconds() / 3600.0
     if hours <= 0:
         return "unknown", None
-    rate = (latest.level_m - past.level_m) / hours
-    if rate > 0.01:
+    rate = (latest[1] - past[1]) / hours
+    zone_ref = abs(latest[1]) or 1.0
+    if rate > 0.001 * zone_ref:
         return "rising", rate
-    if rate < -0.01:
+    if rate < -0.001 * zone_ref:
         return "falling", rate
     return "steady", rate
 
 
-def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: dict) -> Assessment:
-    name = river["name"]
-    station = river["station"]
-    latest = data.latest
-
-    if latest is None or latest.level_m is None:
-        return Assessment(
-            river=name, station=station, verdict="NO_DATA", level_m=None,
-            trend="unknown", rate_m_per_h=None,
-            headline="No recent data from the station.",
-            outlook="", zone="low", updated=None,
-        )
-
-    level = latest.level_m
-    zone = _zone(level, river)
-    trend, rate = _trend(data)
-    caution_rate = defaults.get("rising_rate_caution_m_per_h", 0.05)
-
-    # --- verdict logic -----------------------------------------------------
-    if zone == "blown":
-        verdict = "BLOWN_OUT"
-        headline = f"{level:.2f} m — too high / likely dirty. Sit this one out."
-    elif zone == "high":
-        if trend == "falling":
-            verdict = "GET_READY"
-            headline = f"{level:.2f} m and dropping — clearing into shape soon."
-        else:
-            verdict = "MARGINAL"
-            headline = f"{level:.2f} m — high; fishable spots but use caution."
-    elif zone == "good":
-        if trend == "rising" and rate is not None and rate > caution_rate:
-            verdict = "MARGINAL"
-            headline = f"{level:.2f} m and rising fast — may blow out; go now or wait."
-        else:
-            verdict = "GO"
-            drop = " and dropping (prime)" if trend == "falling" else ""
-            headline = f"{level:.2f} m — in the zone{drop}. Good to fish. 🎣"
-    else:  # low
-        if trend == "rising":
-            verdict = "GET_READY"
-            headline = f"{level:.2f} m — low but rising toward the zone."
-        else:
-            verdict = "TOO_LOW"
-            headline = f"{level:.2f} m — too low. Needs water."
-
-    outlook = _outlook(zone, trend, rain, river)
-    return Assessment(
-        river=name, station=station, verdict=verdict, level_m=round(level, 2),
-        trend=trend, rate_m_per_h=(round(rate, 3) if rate is not None else None),
-        headline=headline, outlook=outlook, zone=zone,
-        updated=latest.timestamp.isoformat(),
-    )
+def _delta_over_days(data: StationData, metric: str, days: int) -> float:
+    latest = data.latest_metric(metric)
+    if latest is None:
+        return 0.0
+    past = data.metric_at_or_before(latest[0] - timedelta(days=days), metric)
+    return 0.0 if past is None else latest[1] - past[1]
 
 
-def _outlook(zone: str, trend: str, rain: RainOutlook | None, river: dict) -> str:
+def _best_time_of_day(data: StationData, metric: str, fed_by: str) -> str | None:
+    """Find the daily low-water (clearest) window for melt-fed rivers.
+
+    Detrends the series first (subtracts a centered ~24h rolling mean) so a
+    multi-day rise/fall can't masquerade as a daily cycle, then averages the
+    residual by local hour-of-day.
+    """
+    if fed_by not in MELT_FED:
+        return None
+    series = data.series(metric)
+    if len(series) < 24:
+        return None
+    vals = [v for _, v in series]
+    n = len(vals)
+    half = 12
+    residual_by_hour: dict[int, list[float]] = {}
+    for i, (ts, v) in enumerate(series):
+        window_vals = vals[max(0, i - half):min(n, i + half + 1)]
+        trend = sum(window_vals) / len(window_vals)
+        h = ts.astimezone(BC_TZ).hour
+        residual_by_hour.setdefault(h, []).append(v - trend)
+    if len(residual_by_hour) < 8:
+        return None
+    avg = {h: sum(vs) / len(vs) for h, vs in residual_by_hour.items()}
+    lo_h = min(avg, key=avg.get)
+    hi_h = max(avg, key=avg.get)
+    mean_level = abs(sum(vals) / n) or 1.0
+    amp = (avg[hi_h] - avg[lo_h]) / mean_level
+    if amp < 0.03:   # <3% daily swing -> too weak/noisy to trust (rain/mixed rivers)
+        return None
+
+    start, end = (lo_h - 1) % 24, (lo_h + 2) % 24
+    return (f"Daily low ~{start:02d}:00–{end:02d}:00 (clearest); peak ~{hi_h:02d}:00. "
+            f"Fish the low window.")
+
+
+def _rain_features(rain: RainOutlook | None) -> tuple[float, float, dict[int, float]]:
     if rain is None or not rain.available:
-        return "Rain forecast unavailable."
-    r72 = rain.next_72h_mm
-    if r72 >= 40:
-        band = "heavy rain"
-    elif r72 >= 15:
-        band = "moderate rain"
-    elif r72 >= 3:
-        band = "light rain"
-    else:
-        band = "little/no rain"
+        return 0.0, 0.0, {}
+    cum = {}
+    running = 0.0
+    for i, mm in enumerate(rain.daily_mm[:3], start=1):
+        running += mm
+        cum[i] = running
+    return rain.past_24h_mm, rain.past_72h_mm, cum
 
-    parts = [f"Next 3 days: {band} forecast ({r72:.0f} mm)."]
-    if zone in ("low",) and r72 >= 15:
-        parts.append("Expect the river to rise — could push into the zone.")
-    elif zone in ("good",) and r72 >= 40:
-        parts.append("Watch for a blow-out; fish before it spikes.")
-    elif zone in ("high", "blown") and r72 < 3:
-        parts.append("Dry spell should let it drop back into shape.")
-    elif zone == "good" and r72 < 3:
-        parts.append("Stable conditions — should stay fishable.")
 
-    # Point out the best-looking upcoming day by rain (dry day after wet = good).
-    if rain.daily_mm:
-        best_day = min(range(len(rain.daily_mm)), key=lambda i: rain.daily_mm[i])
-        labels = ["today", "tomorrow", "in 2 days", "in 3 days", "in 4 days"]
-        if best_day < len(labels) and rain.daily_mm[best_day] < 5:
-            parts.append(f"Driest day: {labels[best_day]}.")
+def _labels(day: int) -> str:
+    return {1: "tomorrow", 2: "in 2 days", 3: "in 3 days"}.get(day, f"in {day} days")
+
+
+def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: dict,
+           now: datetime | None = None) -> Assessment:
+    now = now or datetime.now(timezone.utc)
+    name, station = river["name"], river["station"]
+    metric = river.get("metric", "level")
+    unit = "cms" if metric == "flow" else "m"
+    latest = data.latest_metric(metric)
+
+    base = dict(river=name, station=station, metric=metric, unit=unit,
+                good_low=river["good_low"], good_high=river["good_high"], blown_out=river["blown_out"])
+
+    if latest is None:
+        return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,
+                          headline="No recent data from the station.", outlook="", zone="low", updated=None)
+
+    ts, value = latest
+    zone = _zone(value, river)
+    trend, rate = _trend(data, metric)
+    width = max(river["good_high"] - river["good_low"], 1e-6)
+    caution_rate = defaults.get("rising_rate_caution_frac_per_h", 0.03) * width
+    verdict = _verdict_for_zone(zone, trend, rate, caution_rate)
+
+    headline = _headline(verdict, value, unit, trend)
+    best_time = _best_time_of_day(data, metric, river.get("fed_by", "rain"))
+
+    # --- ML forecast (fall back to heuristic outlook) ----------------------
+    day_forecasts: list[DayForecast] = []
+    skill = None
+    models = fc.load_models(station)
+    if models:
+        rp1, rp3, rcum = _rain_features(rain)
+        d1 = _delta_over_days(data, metric, 1)
+        d3 = _delta_over_days(data, metric, 3)
+        doy = int(ts.astimezone(BC_TZ).timetuple().tm_yday)
+        preds = fc.predict(models, value, d1, d3, rp1, rp3, rcum, doy)
+        skill = round(sum(p.skill for p in preds) / len(preds), 2) if preds else None
+        for p in preds:
+            z = _zone(p.value, river)
+            v = _verdict_for_zone(z, "steady", None, caution_rate)
+            day_forecasts.append(DayForecast(day=p.horizon_days, value=p.value, verdict=v, label=_labels(p.horizon_days)))
+
+    outlook = _outlook(zone, trend, rain, day_forecasts, unit)
+    return Assessment(**base, verdict=verdict, value=round(value, 2), trend=trend,
+                      rate_per_h=(round(rate, 3) if rate is not None else None),
+                      headline=headline, outlook=outlook, zone=zone, updated=ts.isoformat(),
+                      best_time=best_time, forecast=day_forecasts, forecast_skill=skill)
+
+
+def _headline(verdict: str, value: float, unit: str, trend: str) -> str:
+    v = f"{value:.2f} m" if unit == "m" else f"{value:,.0f} cms"
+    return {
+        "BLOWN_OUT": f"{v} — too high / likely dirty. Sit this one out.",
+        "GET_READY": (f"{v} and dropping — clearing into shape soon." if trend == "falling"
+                      else f"{v} — rising toward the zone."),
+        "MARGINAL": f"{v} — marginal; fishable spots but use caution.",
+        "GO": (f"{v} — in the zone and dropping (prime). Good to fish. 🎣" if trend == "falling"
+               else f"{v} — in the zone. Good to fish. 🎣"),
+        "TOO_LOW": f"{v} — too low. Needs water.",
+    }.get(verdict, v)
+
+
+def _outlook(zone: str, trend: str, rain: RainOutlook | None,
+             forecasts: list[DayForecast], unit: str) -> str:
+    parts = []
+    # ML forecast leads if present.
+    if forecasts:
+        go_days = [f.label for f in forecasts if f.verdict in ("GO", "GET_READY")]
+        if go_days:
+            parts.append("Model: fishable " + ", ".join(go_days) + ".")
+        else:
+            nxt = forecasts[0]
+            v = f"{nxt.value:.2f} m" if unit == "m" else f"{nxt.value:,.0f} cms"
+            parts.append(f"Model: ~{v} {nxt.label} ({nxt.verdict.replace('_', ' ').lower()}).")
+
+    if rain is not None and rain.available:
+        r72 = rain.next_72h_mm
+        band = ("heavy rain" if r72 >= 40 else "moderate rain" if r72 >= 15
+                else "light rain" if r72 >= 3 else "little/no rain")
+        parts.append(f"Next 3 days: {band} ({r72:.0f} mm).")
+        if zone == "low" and r72 >= 15:
+            parts.append("Rain should push it up toward the zone.")
+        elif zone == "good" and r72 >= 40:
+            parts.append("Watch for a blow-out — fish before it spikes.")
+        elif zone in ("high", "blown") and r72 < 3:
+            parts.append("Dry spell should drop it back into shape.")
+    elif not forecasts:
+        parts.append("Forecast unavailable.")
     return " ".join(parts)

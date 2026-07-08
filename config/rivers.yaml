@@ -2,25 +2,31 @@
 # BC salmon rivers to watch.
 #
 # Each river maps to an Environment Canada (ECCC) hydrometric station.
-# Water level data comes from that station; rain forecast comes from the
-# lat/lon (the watershed above the station).
 #
-# IMPORTANT: the `station` IDs below are a best-effort starter list and are
-# marked `verified: false`. Run `python tools/discover_stations.py` (from a
-# machine/CI with internet) to confirm the correct station numbers and coords,
-# then set `verified: true`. The discovery tool can search by river name.
+# THRESHOLDS ARE DATA-DRIVEN. Real fishable levels aren't published as gauge
+# metres, so the honest way to set them is from each station's OWN history:
+#   run  `python tools/calibrate_thresholds.py`  (needs internet)
+# It pulls ~decades of daily records for the river's salmon season and sets
+#   good_low  = ~25th percentile   (lower/clearer, very fishable)
+#   good_high = ~60th percentile   (upper edge of nicely fishable)
+#   blown_out = ~85th percentile   (too high/dirty/unsafe)
+# The numbers below are research-seeded starting points until you calibrate.
 #
-# Thresholds are in METRES of water level (the station's gauge datum, not
-# depth you'd wade). They are rough defaults — tune them to the levels you
-# personally find fishable on each river. `good_low`..`good_high` is your
-# "go fishing" zone; above `blown_out` the river is too high/dirty/unsafe.
+# `metric` picks what those thresholds measure:
+#   level -> water level in metres      (small/medium rivers)
+#   flow  -> discharge in m^3/s (cms)   (big rivers; the metric anglers/
+#                                        hydrologists actually use there)
+#
+# `fed_by` (rain|snow|glacier|mixed) controls the "best time of day" feature:
+#   snow/glacier rivers have a daily melt cycle (afternoon rise, dirtier);
+#   rain rivers don't, so time-of-day is suppressed for them.
+#
+# `season_months` = the salmon months; used by calibration and to avoid
+#   off-season noise.
 # ---------------------------------------------------------------------------
 
 defaults:
-  # Used when a river omits a field. Override per-river below.
-  units: m
-  # How we turn raw level into advice (see src/analyze.py).
-  rising_rate_caution_m_per_h: 0.05   # rising faster than this => "blowing out"
+  rising_rate_caution_frac_per_h: 0.03   # rising >3%/h of the good-zone width => "blowing out"
 
 rivers:
   - name: "Vedder / Chilliwack River"
@@ -28,28 +34,37 @@ rivers:
     verified: false
     lat: 49.093
     lon: -121.961
+    metric: level
+    fed_by: mixed
+    season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "chinook", "steelhead"]
     good_low: 1.20
     good_high: 2.10
     blown_out: 2.60
-    notes: "Prime on the drop after a rain bump, once it clears."
+    notes: "Prime on the drop after a rain bump, once it clears. A >1 m rise blows it out."
 
   - name: "Fraser River at Hope"
     station: "08MF005"          # Fraser R at Hope (VERIFY)
     verified: false
     lat: 49.386
     lon: -121.451
+    metric: flow               # discussed in m^3/s, not level
+    fed_by: snow
+    season_months: [7, 8, 9, 10]
     species: ["sockeye", "pink", "chinook"]
-    good_low: 4.0
-    good_high: 6.5
-    blown_out: 8.0
-    notes: "Big system; bar fishing tied to level + timing of runs."
+    good_low: 2000
+    good_high: 5000
+    blown_out: 7000
+    notes: "Bar fishing; lower/clearer is better. Freshet peaks 7000-11000 cms."
 
   - name: "Cowichan River"
     station: "08HA011"          # Cowichan R near Duncan (VERIFY)
     verified: false
     lat: 48.781
     lon: -123.678
+    metric: level
+    fed_by: rain
+    season_months: [10, 11, 12]
     species: ["coho", "chinook", "steelhead", "brown trout"]
     good_low: 0.70
     good_high: 1.40
@@ -61,19 +76,25 @@ rivers:
     verified: false
     lat: 49.792
     lon: -123.152
+    metric: level
+    fed_by: glacier
+    season_months: [8, 9, 10, 11]
     species: ["chum", "coho", "pink", "steelhead"]
     good_low: 1.00
     good_high: 2.00
     blown_out: 2.80
-    notes: "Glacial; watch for melt-driven afternoon rise in summer."
+    notes: "Glacial; afternoon melt raises + dirties it. Best fished early."
 
   - name: "Skeena River at Usk"
     station: "08EF001"          # Skeena R at Usk (VERIFY)
     verified: false
     lat: 54.632
     lon: -128.433
+    metric: flow
+    fed_by: snow
+    season_months: [7, 8, 9, 10]
     species: ["chinook", "sockeye", "coho", "steelhead"]
-    good_low: 4.0
-    good_high: 8.0
-    blown_out: 10.0
-    notes: "Freshet-driven; huge seasonal swing."
+    good_low: 800
+    good_high: 2500
+    blown_out: 4000
+    notes: "Freshet-driven; huge seasonal swing. Calibrate flow thresholds."

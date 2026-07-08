@@ -1,0 +1,46 @@
+name: Train forecast + calibrate thresholds
+
+# Heavy, occasional job (pulls decades of history). Runs weekly + on demand.
+# Commits the trained models so the frequent check workflow can just load them.
+on:
+  schedule:
+    - cron: "0 9 * * 1"     # Mondays 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      calibrate:
+        description: "Also recalibrate thresholds from history (writes config)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+
+      - name: Calibrate thresholds (optional)
+        if: ${{ inputs.calibrate }}
+        run: python tools/calibrate_thresholds.py --write
+
+      - name: Train models
+        run: python tools/train_forecast.py
+
+      - name: Commit models (+ config if calibrated)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f models/*.json
+          git add config/rivers.yaml
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "Retrain forecast models / calibrate thresholds [skip ci]"
+            git push
+          fi

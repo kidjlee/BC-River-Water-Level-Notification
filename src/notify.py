@@ -46,6 +46,8 @@ def build_message(alerts: list[Assessment]) -> tuple[str, str]:
         lines.append(f"    {a.headline}")
         if a.outlook:
             lines.append(f"    Outlook: {a.outlook}")
+        if a.best_time:
+            lines.append(f"    Best time: {a.best_time}")
         lines.append("")
     return subject, "\n".join(lines).strip()
 

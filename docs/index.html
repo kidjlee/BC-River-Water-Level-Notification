@@ -5,116 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BC Salmon River Conditions</title>
 <style>
-  :root { color-scheme: light dark; --bg:#f6f7f9; --fg:#111827; --card:#fff; --muted:#6b7280; --line:#e5e7eb; }
+  :root { color-scheme: light dark; --bg:#f5f7fa; --fg:#0f172a; --card:#ffffff;
+           --muted:#5b6472; --line:#e3e8ef; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#0f1115; --fg:#e5e7eb; --card:#171a21; --muted:#9ca3af; --line:#262b33; }
+    :root { --bg:#0d1017; --fg:#e6eaf1; --card:#161b24; --muted:#93a0b4; --line:#232b38; }
   }
-  * { box-sizing: border-box; }
-  body { margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-         background:var(--bg); color:var(--fg); }
-  .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 48px; }
-  h1 { font-size:1.6rem; margin:0 0 4px; }
-  .sub { color:var(--muted); margin:0 0 24px; font-size:.9rem; }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+          background:var(--bg); color:var(--fg); }
+  .wrap { max-width:1040px; margin:0 auto; padding:24px 16px 56px; }
+  h1 { font-size:1.55rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 18px; font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 22px; }
+  .tile { display:flex; flex-direction:column; align-items:center; min-width:76px;
+           background:var(--card); border:1px solid var(--line); border-top:3px solid var(--c);
+           border-radius:10px; padding:8px 12px; }
+  .tile .tn { font-size:1.5rem; font-weight:800; }
+  .tile .tl { font-size:.62rem; font-weight:700; letter-spacing:.05em; color:var(--muted); }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); }
   .card { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent);
            border-radius:12px; padding:16px; }
   .card header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
   .card h2 { font-size:1.05rem; margin:0; }
-  .badge { font-size:.72rem; font-weight:700; letter-spacing:.04em; color:#fff;
-            background:var(--accent); padding:3px 8px; border-radius:999px; white-space:nowrap; }
-  .metrics { display:flex; align-items:center; gap:12px; margin:12px 0 6px; }
-  .level { display:flex; flex-direction:column; }
-  .num { font-size:1.5rem; font-weight:700; }
-  .trend { font-size:.8rem; color:var(--muted); }
-  .spark { flex:1; height:44px; }
-  .spark-empty { flex:1; font-size:.75rem; color:var(--muted); }
-  .headline { margin:6px 0; font-weight:600; }
-  .outlook { margin:6px 0; font-size:.88rem; color:var(--muted); }
-  .card footer { display:flex; justify-content:space-between; font-size:.72rem;
-                  color:var(--muted); margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }
-  .foot { margin-top:28px; font-size:.8rem; color:var(--muted); text-align:center; }
+  .badge { font-size:.7rem; font-weight:800; letter-spacing:.04em; color:#fff; background:var(--accent);
+            padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .topline { display:flex; align-items:baseline; gap:10px; margin:10px 0 4px; }
+  .num { font-size:1.7rem; font-weight:800; }
+  .trend { font-size:.82rem; color:var(--muted); }
+  .metric-tag { margin-left:auto; font-size:.62rem; text-transform:uppercase; letter-spacing:.06em;
+                 color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:1px 6px; }
+  .chart { width:100%; height:auto; margin:4px 0 6px; }
+  .chart-empty { font-size:.75rem; color:var(--muted); padding:24px 0; text-align:center; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 8px; }
+  .chip { font-size:.72rem; font-weight:600; border:1px solid var(--c); color:var(--fg);
+           border-left:4px solid var(--c); border-radius:6px; padding:2px 7px; background:transparent; }
+  .skill { font-size:.68rem; color:var(--muted); align-self:center; }
+  .headline { margin:6px 0; font-weight:650; }
+  .outlook { margin:6px 0; font-size:.86rem; color:var(--muted); }
+  .best { margin:6px 0; font-size:.82rem; color:var(--fg); background:color-mix(in srgb, var(--accent) 10%, transparent);
+           border-radius:8px; padding:6px 9px; }
+  .card footer { display:flex; justify-content:space-between; font-size:.7rem; color:var(--muted);
+                  margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }
+  .legend { font-size:.72rem; color:var(--muted); margin:18px 0 0; display:flex; gap:16px; flex-wrap:wrap; }
+  .legend span::before { content:""; display:inline-block; width:14px; height:3px; margin-right:5px;
+                          vertical-align:middle; }
+  .lg-obs::before { background:#2563eb; }
+  .lg-fc::before { background:#2563eb; opacity:.6;
+                    background-image:repeating-linear-gradient(90deg,#2563eb 0 4px,transparent 4px 7px); }
+  .lg-zone::before { background:#2e9e5b; opacity:.4; height:10px; }
+  .foot { margin-top:26px; font-size:.78rem; color:var(--muted); text-align:center; }
   a { color:inherit; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🎣 BC Salmon River Conditions</h1>
-  <p class="sub">Live water levels + rain outlook. Updated sample data — awaiting first live run.
-     Green = go fish. Not a safety guarantee — always check conditions yourself.</p>
+  <p class="sub">Live water level / flow, a 1-3 day ML forecast, and rain outlook.
+     Updated Jul 08, 2026 04:20 UTC (DEMO — synthetic data). Green band = good zone. Not a safety guarantee — check conditions yourself.</p>
+  <div class="tiles"><div class="tile" style="--c:#2e9e5b"><span class="tn">2</span><span class="tl">GO FISH</span></div><div class="tile" style="--c:#d97706"><span class="tn">2</span><span class="tl">MARGINAL</span></div><div class="tile" style="--c:#2f74d0"><span class="tn">1</span><span class="tl">TOO LOW</span></div></div>
   <div class="grid">
     
     <article class="card" style="--accent:#2e9e5b">
-      <header>
-        <h2>Vedder / Chilliwack River</h2>
-        <span class="badge">🟢 GO FISH</span>
-      </header>
-      <div class="metrics">
-        <div class="level"><span class="num">1.33 m</span><span class="trend">→ steady</span></div>
-        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#2e9e5b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,2.0 6.6,2.9 11.2,3.7 15.8,4.6 20.4,5.4 25.0,6.3 29.6,7.1 34.2,8.0 38.8,8.8 43.4,9.7 48.0,10.5 52.6,11.4 57.1,12.2 61.7,13.1 66.3,13.9 70.9,14.8 75.5,15.6 80.1,16.5 84.7,17.3 89.3,18.2 93.9,19.0 98.5,19.9 103.1,20.7 107.7,21.6 112.3,22.4 116.9,23.3 121.5,24.1 126.1,25.0 130.7,25.8 135.3,26.7 139.9,27.5 144.5,28.4 149.1,29.2 153.7,30.1 158.3,30.9 162.9,31.8 167.4,32.6 172.0,33.5 176.6,34.3 181.2,35.2 185.8,36.0 190.4,36.9 195.0,37.7 199.6,38.6 204.2,39.4 208.8,40.3 213.4,41.1 218.0,42.0"/></svg>
-      </div>
-      <p class="headline">1.33 m — in the zone. Good to fish. 🎣</p>
-      <p class="outlook">Next 3 days: light rain forecast (5 mm). Driest day: tomorrow.</p>
-      <footer><span>Station 08MH001</span><span>Jul 08, 03:39 UTC</span></footer>
+      <header><h2>Vedder / Chilliwack River</h2><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">2.05 m</span><span class="trend">↓ falling</span>
+        <span class="metric-tag">level</span></div>
+      <svg class="chart" viewBox="0 0 300 120" role="img" aria-label="recent level and forecast"><rect x="6" y="45.2" width="288" height="59.6" fill="#2e9e5b" opacity="0.13"/><line x1="6" y1="12.1" x2="294" y2="12.1" stroke="#d64545" stroke-width="1" stroke-dasharray="2 3" opacity="0.7"/><line x1="276.7" y1="8" x2="276.7" y2="112" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="6.0,37.0 11.8,36.8 17.5,36.7 23.3,34.8 29.0,34.8 34.8,33.2 40.6,32.4 46.3,29.6 52.1,28.0 57.8,25.4 63.6,23.3 69.4,20.9 75.1,17.8 80.9,15.2 86.6,16.7 92.4,17.9 98.2,19.3 103.9,20.5 109.7,22.7 115.4,24.4 121.2,26.7 127.0,28.7 132.7,31.3 138.5,32.7 144.2,35.4 150.0,37.2 155.8,38.3 161.5,39.9 167.3,41.2 173.0,41.9 178.8,42.8 184.6,43.4 190.3,42.6 196.1,43.4 201.8,43.2 207.6,42.7 213.4,42.5 219.1,42.2 224.9,42.9 230.6,42.5 236.4,42.7 242.2,43.0 247.9,43.8 253.7,44.6 259.4,45.2 265.2,46.7 271.0,47.5 276.7,48.7"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.7,48.7 282.5,46.6 288.2,49.9 294.0,50.5"/><circle cx="282.5" cy="46.6" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 2.08 m (GO FISH)</title></circle><circle cx="288.2" cy="49.9" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 2.03 m (GO FISH)</title></circle><circle cx="294.0" cy="50.5" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 2.02 m (GO FISH)</title></circle></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 2.08 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 2.03 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 2.02 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+72%)</span></div>
+      <p class="headline">2.05 m — in the zone and dropping (prime). Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days. Next 3 days: light rain (3 mm).</p>
+      
+      <footer><span>Station 08MH001</span><span>Jul 08, 04:20 UTC</span></footer>
     </article>
 
     <article class="card" style="--accent:#2e9e5b">
-      <header>
-        <h2>Cowichan River</h2>
-        <span class="badge">🟢 GO FISH</span>
-      </header>
-      <div class="metrics">
-        <div class="level"><span class="num">1.00 m</span><span class="trend">→ steady</span></div>
-        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#2e9e5b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,42.0 11.2,42.0 15.8,42.0 20.4,42.0 25.0,42.0 29.6,42.0 34.2,42.0 38.8,42.0 43.4,42.0 48.0,42.0 52.6,42.0 57.1,42.0 61.7,42.0 66.3,42.0 70.9,42.0 75.5,42.0 80.1,42.0 84.7,42.0 89.3,42.0 93.9,42.0 98.5,42.0 103.1,42.0 107.7,42.0 112.3,42.0 116.9,42.0 121.5,42.0 126.1,42.0 130.7,42.0 135.3,42.0 139.9,42.0 144.5,42.0 149.1,42.0 153.7,42.0 158.3,42.0 162.9,42.0 167.4,42.0 172.0,42.0 176.6,42.0 181.2,42.0 185.8,42.0 190.4,42.0 195.0,42.0 199.6,42.0 204.2,42.0 208.8,42.0 213.4,42.0 218.0,42.0"/></svg>
-      </div>
-      <p class="headline">1.00 m — in the zone. Good to fish. 🎣</p>
-      <p class="outlook">Next 3 days: little/no rain forecast (2 mm). Stable conditions — should stay fishable. Driest day: today.</p>
-      <footer><span>Station 08HA011</span><span>Jul 08, 03:39 UTC</span></footer>
-    </article>
-
-    <article class="card" style="--accent:#c9a227">
-      <header>
-        <h2>Squamish River</h2>
-        <span class="badge">🟡 GET READY</span>
-      </header>
-      <div class="metrics">
-        <div class="level"><span class="num">0.96 m</span><span class="trend">↑ rising</span></div>
-        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#c9a227" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,41.1 11.2,40.3 15.8,39.4 20.4,38.6 25.0,37.7 29.6,36.9 34.2,36.0 38.8,35.2 43.4,34.3 48.0,33.5 52.6,32.6 57.1,31.8 61.7,30.9 66.3,30.1 70.9,29.2 75.5,28.4 80.1,27.5 84.7,26.7 89.3,25.8 93.9,25.0 98.5,24.1 103.1,23.3 107.7,22.4 112.3,21.6 116.9,20.7 121.5,19.9 126.1,19.0 130.7,18.2 135.3,17.3 139.9,16.5 144.5,15.6 149.1,14.8 153.7,13.9 158.3,13.1 162.9,12.2 167.4,11.4 172.0,10.5 176.6,9.7 181.2,8.8 185.8,8.0 190.4,7.1 195.0,6.3 199.6,5.4 204.2,4.6 208.8,3.7 213.4,2.9 218.0,2.0"/></svg>
-      </div>
-      <p class="headline">0.96 m — low but rising toward the zone.</p>
-      <p class="outlook">Next 3 days: heavy rain forecast (45 mm). Expect the river to rise — could push into the zone.</p>
-      <footer><span>Station 08GA022</span><span>Jul 08, 03:39 UTC</span></footer>
+      <header><h2>Squamish River</h2><span class="badge">🟢 GO FISH</span></header>
+      <div class="topline"><span class="num">1.72 m</span><span class="trend">↑ rising</span>
+        <span class="metric-tag">level</span></div>
+      <svg class="chart" viewBox="0 0 300 120" role="img" aria-label="recent level and forecast"><rect x="6" y="15.2" width="288" height="89.7" fill="#2e9e5b" opacity="0.13"/><line x1="276.7" y1="8" x2="276.7" y2="112" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="6.0,50.7 11.8,54.5 17.5,55.2 23.3,56.6 29.0,57.3 34.8,55.8 40.6,57.0 46.3,55.1 52.1,52.3 57.8,50.8 63.6,48.0 69.4,46.0 75.1,42.8 80.9,40.2 86.6,37.7 92.4,36.0 98.2,35.2 103.9,34.1 109.7,35.6 115.4,36.9 121.2,37.9 127.0,40.5 132.7,42.4 138.5,44.3 144.2,47.2 150.0,48.0 155.8,50.7 161.5,51.8 167.3,51.2 173.0,51.6 178.8,50.6 184.6,48.7 190.3,45.9 196.1,43.7 201.8,40.8 207.6,37.9 213.4,34.4 219.1,31.6 224.9,28.3 230.6,26.8 236.4,25.9 242.2,23.3 247.9,26.0 253.7,27.2 259.4,29.8 265.2,33.7 271.0,35.4 276.7,40.0"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.7,40.0 282.5,35.8 288.2,33.1 294.0,34.9"/><circle cx="282.5" cy="35.8" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 1.77 m (GO FISH)</title></circle><circle cx="288.2" cy="33.1" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 1.80 m (GO FISH)</title></circle><circle cx="294.0" cy="34.9" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 1.78 m (GO FISH)</title></circle></svg>
+      <div class="chips"><span class="chip" style="--c:#2e9e5b" title="GO FISH">tomorrow: 1.77 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 1.80 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 1.78 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+72%)</span></div>
+      <p class="headline">1.72 m — in the zone. Good to fish. 🎣</p>
+      <p class="outlook">Model: fishable tomorrow, in 2 days, in 3 days. Next 3 days: light rain (6 mm).</p>
+      <p class="best">🕐 Daily low ~03:00–06:00 (clearest); peak ~15:00. Fish the low window.</p>
+      <footer><span>Station 08GA022</span><span>Jul 08, 04:20 UTC</span></footer>
     </article>
 
     <article class="card" style="--accent:#d97706">
-      <header>
-        <h2>Fraser River at Hope</h2>
-        <span class="badge">🟠 MARGINAL</span>
-      </header>
-      <div class="metrics">
-        <div class="level"><span class="num">7.82 m</span><span class="trend">↑ rising</span></div>
-        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,41.1 11.2,40.3 15.8,39.4 20.4,38.6 25.0,37.7 29.6,36.9 34.2,36.0 38.8,35.2 43.4,34.3 48.0,33.5 52.6,32.6 57.1,31.8 61.7,30.9 66.3,30.1 70.9,29.2 75.5,28.4 80.1,27.5 84.7,26.7 89.3,25.8 93.9,25.0 98.5,24.1 103.1,23.3 107.7,22.4 112.3,21.6 116.9,20.7 121.5,19.9 126.1,19.0 130.7,18.2 135.3,17.3 139.9,16.5 144.5,15.6 149.1,14.8 153.7,13.9 158.3,13.1 162.9,12.2 167.4,11.4 172.0,10.5 176.6,9.7 181.2,8.8 185.8,8.0 190.4,7.1 195.0,6.3 199.6,5.4 204.2,4.6 208.8,3.7 213.4,2.9 218.0,2.0"/></svg>
-      </div>
-      <p class="headline">7.82 m — high; fishable spots but use caution.</p>
-      <p class="outlook">Next 3 days: heavy rain forecast (60 mm).</p>
-      <footer><span>Station 08MF005</span><span>Jul 08, 03:39 UTC</span></footer>
+      <header><h2>Fraser River at Hope</h2><span class="badge">🟠 MARGINAL</span></header>
+      <div class="topline"><span class="num">6,795 cms</span><span class="trend">↑ rising</span>
+        <span class="metric-tag">flow</span></div>
+      <svg class="chart" viewBox="0 0 300 120" role="img" aria-label="recent flow and forecast"><rect x="6" y="69.6" width="288" height="35.2" fill="#2e9e5b" opacity="0.13"/><line x1="6" y1="46.1" x2="294" y2="46.1" stroke="#d64545" stroke-width="1" stroke-dasharray="2 3" opacity="0.7"/><line x1="276.7" y1="8" x2="276.7" y2="112" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="6.0,67.0 11.8,67.2 17.5,67.2 23.3,67.4 29.0,67.2 34.8,67.0 40.6,66.6 46.3,66.5 52.1,65.6 57.8,65.0 63.6,64.3 69.4,63.0 75.1,62.5 80.9,61.5 86.6,61.0 92.4,60.2 98.2,59.9 103.9,59.3 109.7,58.9 115.4,58.6 121.2,58.3 127.0,58.4 132.7,58.5 138.5,58.6 144.2,58.4 150.0,58.5 155.8,58.2 161.5,57.7 167.3,57.0 173.0,56.3 178.8,55.3 184.6,54.0 190.3,52.9 196.1,51.6 201.8,50.2 207.6,48.2 213.4,46.5 219.1,44.7 224.9,42.9 230.6,41.6 236.4,40.0 242.2,38.2 247.9,39.8 253.7,41.3 259.4,43.6 265.2,45.0 271.0,46.9 276.7,48.5"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.7,48.5 282.5,29.6 288.2,17.8 294.0,15.2"/><circle cx="282.5" cy="29.6" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 8,406 cms (BLOWN OUT)</title></circle><circle cx="288.2" cy="17.8" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 9,417 cms (BLOWN OUT)</title></circle><circle cx="294.0" cy="15.2" r="3.5" fill="#d64545" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 9,637 cms (BLOWN OUT)</title></circle></svg>
+      <div class="chips"><span class="chip" style="--c:#d64545" title="BLOWN OUT">tomorrow: 8,406 cms</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 2 days: 9,417 cms</span><span class="chip" style="--c:#d64545" title="BLOWN OUT">in 3 days: 9,637 cms</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+72%)</span></div>
+      <p class="headline">6,795 cms — marginal; fishable spots but use caution.</p>
+      <p class="outlook">Model: ~8,406 cms tomorrow (blown out). Next 3 days: heavy rain (56 mm).</p>
+      <p class="best">🕐 Daily low ~02:00–05:00 (clearest); peak ~15:00. Fish the low window.</p>
+      <footer><span>Station 08MF005</span><span>Jul 08, 04:20 UTC</span></footer>
     </article>
 
-    <article class="card" style="--accent:#3b82f6">
-      <header>
-        <h2>Skeena River at Usk</h2>
-        <span class="badge">🔵 TOO LOW</span>
-      </header>
-      <div class="metrics">
-        <div class="level"><span class="num">3.00 m</span><span class="trend">→ steady</span></div>
-        <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none" role="img" aria-label="recent water level trend"><polyline fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="2.0,42.0 6.6,42.0 11.2,42.0 15.8,42.0 20.4,42.0 25.0,42.0 29.6,42.0 34.2,42.0 38.8,42.0 43.4,42.0 48.0,42.0 52.6,42.0 57.1,42.0 61.7,42.0 66.3,42.0 70.9,42.0 75.5,42.0 80.1,42.0 84.7,42.0 89.3,42.0 93.9,42.0 98.5,42.0 103.1,42.0 107.7,42.0 112.3,42.0 116.9,42.0 121.5,42.0 126.1,42.0 130.7,42.0 135.3,42.0 139.9,42.0 144.5,42.0 149.1,42.0 153.7,42.0 158.3,42.0 162.9,42.0 167.4,42.0 172.0,42.0 176.6,42.0 181.2,42.0 185.8,42.0 190.4,42.0 195.0,42.0 199.6,42.0 204.2,42.0 208.8,42.0 213.4,42.0 218.0,42.0"/></svg>
-      </div>
-      <p class="headline">3.00 m — too low. Needs water.</p>
-      <p class="outlook">Next 3 days: little/no rain forecast (1 mm). Driest day: today.</p>
-      <footer><span>Station 08EF001</span><span>Jul 08, 03:39 UTC</span></footer>
+    <article class="card" style="--accent:#d97706">
+      <header><h2>Skeena River at Usk</h2><span class="badge">🟠 MARGINAL</span></header>
+      <div class="topline"><span class="num">3,108 cms</span><span class="trend">↑ rising</span>
+        <span class="metric-tag">flow</span></div>
+      <svg class="chart" viewBox="0 0 300 120" role="img" aria-label="recent flow and forecast"><rect x="6" y="55.0" width="288" height="49.8" fill="#2e9e5b" opacity="0.13"/><line x1="6" y1="11.1" x2="294" y2="11.1" stroke="#d64545" stroke-width="1" stroke-dasharray="2 3" opacity="0.7"/><line x1="276.7" y1="8" x2="276.7" y2="112" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="6.0,61.9 11.8,62.0 17.5,62.3 23.3,62.5 29.0,62.1 34.8,62.6 40.6,62.1 46.3,61.6 52.1,61.1 57.8,59.9 63.6,59.4 69.4,58.2 75.1,57.3 80.9,56.5 86.6,55.5 92.4,54.9 98.2,54.2 103.9,53.8 109.7,53.3 115.4,53.4 121.2,53.3 127.0,52.9 132.7,53.3 138.5,53.2 144.2,53.3 150.0,52.8 155.8,52.5 161.5,52.2 167.3,52.0 173.0,51.1 178.8,49.8 184.6,48.6 190.3,47.2 196.1,46.1 201.8,44.1 207.6,42.4 213.4,40.5 219.1,38.7 224.9,37.2 230.6,35.2 236.4,33.2 242.2,32.0 247.9,30.3 253.7,28.5 259.4,30.8 265.2,33.0 271.0,35.2 276.7,37.2"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.7,37.2 282.5,23.1 288.2,15.9 294.0,15.2"/><circle cx="282.5" cy="23.1" r="3.5" fill="#d97706" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 3,589 cms (MARGINAL)</title></circle><circle cx="288.2" cy="15.9" r="3.5" fill="#d97706" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 3,836 cms (MARGINAL)</title></circle><circle cx="294.0" cy="15.2" r="3.5" fill="#d97706" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 3,860 cms (MARGINAL)</title></circle></svg>
+      <div class="chips"><span class="chip" style="--c:#d97706" title="MARGINAL">tomorrow: 3,589 cms</span><span class="chip" style="--c:#d97706" title="MARGINAL">in 2 days: 3,836 cms</span><span class="chip" style="--c:#d97706" title="MARGINAL">in 3 days: 3,860 cms</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+71%)</span></div>
+      <p class="headline">3,108 cms — marginal; fishable spots but use caution.</p>
+      <p class="outlook">Model: ~3,589 cms tomorrow (marginal). Next 3 days: moderate rain (32 mm).</p>
+      <p class="best">🕐 Daily low ~02:00–05:00 (clearest); peak ~17:00. Fish the low window.</p>
+      <footer><span>Station 08EF001</span><span>Jul 08, 04:20 UTC</span></footer>
+    </article>
+
+    <article class="card" style="--accent:#2f74d0">
+      <header><h2>Cowichan River</h2><span class="badge">🔵 TOO LOW</span></header>
+      <div class="topline"><span class="num">0.58 m</span><span class="trend">→ steady</span>
+        <span class="metric-tag">level</span></div>
+      <svg class="chart" viewBox="0 0 300 120" role="img" aria-label="recent level and forecast"><rect x="6" y="15.2" width="288" height="75.8" fill="#2e9e5b" opacity="0.13"/><line x1="276.7" y1="8" x2="276.7" y2="112" stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="6.0,104.2 11.8,104.8 17.5,104.2 23.3,104.4 29.0,104.7 34.8,104.6 40.6,104.6 46.3,104.7 52.1,104.3 57.8,103.7 63.6,104.3 69.4,104.6 75.1,104.6 80.9,104.2 86.6,104.4 92.4,104.7 98.2,103.9 103.9,104.1 109.7,104.4 115.4,104.1 121.2,104.3 127.0,104.2 132.7,104.3 138.5,104.3 144.2,104.1 150.0,103.6 155.8,104.4 161.5,104.1 167.3,104.2 173.0,104.2 178.8,104.3 184.6,104.6 190.3,104.0 196.1,104.4 201.8,103.9 207.6,103.3 213.4,104.6 219.1,103.6 224.9,103.3 230.6,103.9 236.4,103.7 242.2,103.0 247.9,104.3 253.7,103.2 259.4,103.5 265.2,103.1 271.0,104.2 276.7,103.9"/><polyline fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" opacity="0.75" points="276.7,103.9 282.5,97.5 288.2,89.9 294.0,83.4"/><circle cx="282.5" cy="97.5" r="3.5" fill="#2f74d0" stroke="var(--card)" stroke-width="1.5"><title>tomorrow: 0.64 m (TOO LOW)</title></circle><circle cx="288.2" cy="89.9" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 2 days: 0.71 m (GO FISH)</title></circle><circle cx="294.0" cy="83.4" r="3.5" fill="#2e9e5b" stroke="var(--card)" stroke-width="1.5"><title>in 3 days: 0.77 m (GO FISH)</title></circle></svg>
+      <div class="chips"><span class="chip" style="--c:#2f74d0" title="TOO LOW">tomorrow: 0.64 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 2 days: 0.71 m</span><span class="chip" style="--c:#2e9e5b" title="GO FISH">in 3 days: 0.77 m</span><span class="skill" title="cross-validated skill vs a no-change baseline">model beats baseline (+72%)</span></div>
+      <p class="headline">0.58 m — too low. Needs water.</p>
+      <p class="outlook">Model: fishable in 2 days, in 3 days. Next 3 days: light rain (3 mm).</p>
+      
+      <footer><span>Station 08HA011</span><span>Jul 08, 04:20 UTC</span></footer>
     </article>
   </div>
-  <p class="foot">Water data: Environment and Climate Change Canada (wateroffice.ec.gc.ca).
-     Rain: Open-Meteo. Thresholds are personal estimates — tune them in config/rivers.yaml.</p>
+  <div class="legend">
+    <span class="lg-obs">observed</span>
+    <span class="lg-fc">forecast (1-3 d)</span>
+    <span class="lg-zone">good zone</span>
+  </div>
+  <p class="foot">Water: Environment and Climate Change Canada (wateroffice.ec.gc.ca).
+     Rain: Open-Meteo. Forecast: ridge regression trained per station. Thresholds: calibrate in config/rivers.yaml.</p>
 </div>
 </body>
 </html>

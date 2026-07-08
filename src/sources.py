@@ -33,6 +33,10 @@ class Reading:
     discharge_cms: float | None
 
 
+def _metric_value(reading: "Reading", metric: str) -> float | None:
+    return reading.discharge_cms if metric == "flow" else reading.level_m
+
+
 @dataclass
 class StationData:
     station: str
@@ -47,6 +51,23 @@ class StationData:
         """Most recent reading with a level at or before `ts` (for trend calc)."""
         candidates = [r for r in self.readings if r.level_m is not None and r.timestamp <= ts]
         return candidates[-1] if candidates else None
+
+    # --- metric-agnostic accessors (level in m, or flow in cms) ------------
+    def series(self, metric: str) -> list[tuple[datetime, float]]:
+        out = []
+        for r in self.readings:
+            v = _metric_value(r, metric)
+            if v is not None:
+                out.append((r.timestamp, v))
+        return out
+
+    def latest_metric(self, metric: str) -> tuple[datetime, float] | None:
+        s = self.series(metric)
+        return s[-1] if s else None
+
+    def metric_at_or_before(self, ts: datetime, metric: str) -> tuple[datetime, float] | None:
+        s = [(t, v) for t, v in self.series(metric) if t <= ts]
+        return s[-1] if s else None
 
 
 def _find_col(header: list[str], *needles: str) -> int | None:
