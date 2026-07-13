@@ -6,7 +6,7 @@
       2350.0
     ],
     "band_width": 1140.0,
-    "intra_day_swing": 108.333,
+    "intra_day_swing": 140.0,
     "median": 1580.0,
     "month_max": 6230.0,
     "month_min": 552.0,
@@ -22,7 +22,7 @@
       1.33
     ],
     "band_width": 0.51,
-    "intra_day_swing": 0.025,
+    "intra_day_swing": 0.008,
     "median": 0.951,
     "month_max": 1.704,
     "month_min": 0.51,
@@ -38,7 +38,7 @@
       4.27
     ],
     "band_width": 0.71,
-    "intra_day_swing": 0.184,
+    "intra_day_swing": 0.299,
     "median": 3.87,
     "month_max": 5.22,
     "month_min": 2.899,
@@ -54,7 +54,7 @@
       1.68
     ],
     "band_width": 0.55,
-    "intra_day_swing": 0.034,
+    "intra_day_swing": 0.04,
     "median": 1.244,
     "month_max": 2.364,
     "month_min": 1.014,
@@ -70,7 +70,7 @@
       2.52
     ],
     "band_width": 0.78,
-    "intra_day_swing": 0.077,
+    "intra_day_swing": 0.081,
     "median": 1.919,
     "month_max": 2.891,
     "month_min": 1.272,
@@ -86,14 +86,14 @@
       0.35
     ],
     "band_width": 0.15,
-    "intra_day_swing": 0.313,
+    "intra_day_swing": 0.041,
     "median": 0.245,
     "month_max": 0.582,
     "month_min": 0.153,
-    "note": "intra-day swing 0.31 rivals the whole 0.15 band (tidal)",
+    "note": "band sits inside a normally-varying gauge",
     "p10": 0.17,
     "p90": 0.4,
-    "quality": "TIDAL"
+    "quality": "OK"
   },
   "08MF005": {
     "band": [
@@ -102,7 +102,7 @@
       7160.0
     ],
     "band_width": 2830.0,
-    "intra_day_swing": 120.0,
+    "intra_day_swing": 161.667,
     "median": 5210.0,
     "month_max": 11100.0,
     "month_min": 2240.0,
@@ -118,7 +118,7 @@
       2.4
     ],
     "band_width": 0.31,
-    "intra_day_swing": 0.018,
+    "intra_day_swing": 0.014,
     "median": 2.169,
     "month_max": 2.694,
     "month_min": 1.981,
@@ -134,7 +134,7 @@
       9.45
     ],
     "band_width": 0.5,
-    "intra_day_swing": 0.019,
+    "intra_day_swing": 0.012,
     "median": 9.089,
     "month_max": 9.926,
     "month_min": 8.746,
@@ -150,7 +150,7 @@
       8.68
     ],
     "band_width": 4.61,
-    "intra_day_swing": 0.048,
+    "intra_day_swing": 0.062,
     "median": 4.572,
     "month_max": 11.487,
     "month_min": 2.783,
@@ -166,7 +166,7 @@
       2.53
     ],
     "band_width": 0.76,
-    "intra_day_swing": 0.025,
+    "intra_day_swing": 0.023,
     "median": 2.118,
     "month_max": 2.853,
     "month_min": 1.481,
@@ -182,7 +182,7 @@
       7.78
     ],
     "band_width": 0.12,
-    "intra_day_swing": 0.02,
+    "intra_day_swing": 0.012,
     "median": 7.698,
     "month_max": 8.113,
     "month_min": 7.614,
@@ -198,7 +198,7 @@
       0.77
     ],
     "band_width": 0.02,
-    "intra_day_swing": 0.005,
+    "intra_day_swing": 0.006,
     "median": 0.756,
     "month_max": 0.853,
     "month_min": 0.73,
@@ -214,7 +214,7 @@
       0.92
     ],
     "band_width": 0.22,
-    "intra_day_swing": 0.065,
+    "intra_day_swing": 0.039,
     "median": 0.786,
     "month_max": 1.942,
     "month_min": 0.467,
@@ -230,11 +230,11 @@
       4.63
     ],
     "band_width": 1.11,
-    "intra_day_swing": 1.234,
+    "intra_day_swing": 1.104,
     "median": 3.716,
     "month_max": 4.959,
     "month_min": 3.219,
-    "note": "intra-day swing 1.23 rivals the whole 1.11 band (tidal)",
+    "note": "intra-day swing 1.10 rivals the whole 1.11 band (tidal)",
     "p10": 3.395,
     "p90": 4.772,
     "quality": "TIDAL"
@@ -246,7 +246,7 @@
       0.94
     ],
     "band_width": 0.15,
-    "intra_day_swing": 0.014,
+    "intra_day_swing": 0.006,
     "median": 0.822,
     "month_max": 1.303,
     "month_min": 0.737,
@@ -262,7 +262,7 @@
       3.3
     ],
     "band_width": 0.6,
-    "intra_day_swing": 0.069,
+    "intra_day_swing": 0.073,
     "median": 2.919,
     "month_max": 3.772,
     "month_min": 2.331,
@@ -278,7 +278,7 @@
       0.6
     ],
     "band_width": 0.07,
-    "intra_day_swing": 0.03,
+    "intra_day_swing": 0.013,
     "median": 0.562,
     "month_max": 1.284,
     "month_min": 0.503,
