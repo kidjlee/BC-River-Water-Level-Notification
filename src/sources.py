@@ -7,6 +7,7 @@ that have a value.
 """
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
@@ -69,6 +70,25 @@ def _to_float(v) -> float | None:
         return None
 
 
+def _reject_outliers(readings: list["Reading"], attr: str) -> None:
+    """Null out non-physical spikes/sentinels in ECCC's real-time feed.
+
+    Uses a robust median ± k*MAD test (MAD = median absolute deviation), so a
+    single garbage value (e.g. a 16666 spike on a 2 m river) is dropped without
+    discarding genuine hydrological swings. Sets the offending field to None.
+    """
+    vals = [getattr(r, attr) for r in readings if getattr(r, attr) is not None]
+    if len(vals) < 5:
+        return
+    med = statistics.median(vals)
+    mad = statistics.median([abs(v - med) for v in vals]) or 0.0
+    thr = max(8 * mad, 0.25 * abs(med), 1e-6)
+    for r in readings:
+        v = getattr(r, attr)
+        if v is not None and (abs(v - med) > thr or v < 0):
+            setattr(r, attr, None)
+
+
 def fetch_station(station: str, prov: str = "BC", hours_back: int = 96, timeout: int = 60) -> StationData:
     """Fetch recent real-time readings for one station via the OGC API."""
     start = (datetime.now(timezone.utc) - timedelta(hours=hours_back)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -92,6 +112,8 @@ def fetch_station(station: str, prov: str = "BC", hours_back: int = 96, timeout:
         data.readings.append(Reading(timestamp=ts, level_m=_to_float(p.get("LEVEL")),
                                      discharge_cms=_to_float(p.get("DISCHARGE"))))
     data.readings.sort(key=lambda r: r.timestamp)
+    _reject_outliers(data.readings, "level_m")
+    _reject_outliers(data.readings, "discharge_cms")
     return data
 
 
