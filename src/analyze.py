@@ -102,6 +102,7 @@ class Assessment:
     threshold_basis: str = ""   # e.g. "Jul normal" when month-calibrated zones are used
     gauge_quality: str = "OK"   # OK / TIDAL / FLAT / SPARSE (from diagnose.py)
     gauge_note: str = ""
+    track_record: str = ""      # forecast accuracy from history.evaluate()
 
     @property
     def emoji(self) -> str:

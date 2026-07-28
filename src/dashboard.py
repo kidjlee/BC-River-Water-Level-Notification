@@ -176,7 +176,8 @@ def _forecast_chips(a: Assessment) -> str:
         tag = "beats baseline" if a.forecast_skill > 0 else "weak"
         skill = (f'<span class="skill" title="cross-validated skill vs a no-change baseline">'
                  f'model {tag} ({pct:+d}%)</span>')
-    return f'<div class="chips">{chips}{skill}</div>'
+    track = f'<div class="track" title="how this river\'s past forecasts scored vs what actually happened">📈 {html.escape(a.track_record)}</div>' if a.track_record else ""
+    return f'<div class="chips">{chips}{skill}</div>{track}'
 
 
 def _tags(a: Assessment) -> str:
@@ -321,6 +322,7 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
   .chip {{ font-size:.72rem; font-weight:600; border:1px solid var(--c); border-left:4px solid var(--c);
            border-radius:6px; padding:2px 7px; }}
   .skill {{ font-size:.66rem; color:var(--muted); align-self:center; }}
+  .track {{ font-size:.68rem; color:var(--muted); margin:0 0 6px; }}
   .headline {{ margin:5px 0; font-weight:650; font-size:.95rem; }}
   .outlook {{ margin:5px 0; font-size:.84rem; color:var(--muted); }}
   .warn {{ margin:6px 0; font-size:.78rem; color:#b45309; background:color-mix(in srgb, #d97706 12%, transparent);

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import yaml
 
-from . import analyze, dashboard, forecast, notify, state
+from . import analyze, dashboard, forecast, history, notify, state
 from .sources import StationData, fetch_station
 from .weather import RainOutlook, fetch_rain
 
@@ -80,6 +80,16 @@ def main(argv=None) -> int:
         results.append((a, data, rain))
 
     assessments = [a for a, _, _ in results]
+
+    # Log this run's forecasts, then score past forecasts against actuals.
+    history.record(assessments)
+    acc = history.evaluate()
+    for a in assessments:
+        st = acc.get(a.station)
+        if st and st.get("n", 0) >= 5:
+            a.track_record = (f"{st['n']} forecasts checked · {int(st['hit_rate']*100)}% verdict match "
+                              f"· ±{st['mae']} {a.unit} avg error")
+
     generated = datetime.now(timezone.utc).strftime("%b %d, %Y %H:%M UTC")
     if args.demo:
         generated += " (DEMO — synthetic data)"
