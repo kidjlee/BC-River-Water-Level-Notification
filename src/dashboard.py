@@ -71,64 +71,22 @@ def _gauge(a: Assessment) -> str:
             f'<div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>')
 
 
-def _history_chart(a: Assessment, series: list, w: int = 320, h: int = 150) -> str:
-    """Interactive 1-year daily chart: scrub with touch/mouse to read any day."""
-    pts = [(d, v) for d, v in (series or []) if v is not None]
+def _history_chart(a: Assessment, series: list) -> str:
+    """Emit raw daily data + a 7d/30d/1yr toggle; JS draws & handles scrubbing."""
+    pts = [[d, round(v, 3)] for d, v in (series or []) if v is not None]
     today = datetime.now(timezone.utc).date().isoformat()
     if a.value is not None and (not pts or pts[-1][0] != today):
-        pts = pts + [(today, a.value)]
+        pts = pts + [[today, a.value]]
     if len(pts) < 5:
         return '<div class="chart-empty">history is still building…</div>'
-
-    ys = [v for _, v in pts]
-    lo, hi = min(ys + [a.good_low]), max(ys + [a.good_high])
-    pad = (hi - lo) * 0.08 or 1.0
-    lo, hi = lo - pad, hi + pad
-    span = (hi - lo) or 1.0
-    pl, pr, pt, pb = 36, 10, 12, 20
-    iw, ih = w - pl - pr, h - pt - pb
-    n = len(pts)
-    x = lambda i: pl + (i / (n - 1)) * iw
-    y = lambda v: pt + ih - ((v - lo) / span) * ih
-
-    band = (f'<rect x="{pl}" y="{y(a.good_high):.1f}" width="{iw}" height="{max(y(a.good_low)-y(a.good_high),0):.1f}" '
-            f'fill="{_ZONE["good"]}" opacity="0.14"/>')
-    line = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, (_, v) in enumerate(pts))
-
-    # month ticks, spaced so labels never bunch (min ~42px apart)
-    ticks, last_lbl_x, last_m = "", -999, None
-    for i, (d, _) in enumerate(pts):
-        m = d[:7]
-        if m != last_m:
-            last_m = m
-            xx = x(i)
-            if xx - last_lbl_x >= 42:
-                last_lbl_x = xx
-                ticks += (f'<line x1="{xx:.1f}" y1="{pt}" x2="{xx:.1f}" y2="{h-pb}" stroke="var(--line)" stroke-width="1"/>'
-                          f'<text x="{xx:.1f}" y="{h-6}" class="ax" text-anchor="middle">{_MON[int(d[5:7])]}</text>')
-    ylab = (f'<text x="4" y="{y(hi)+7:.0f}" class="ax">{_short(hi, a.unit)}</text>'
-            f'<text x="4" y="{(pt+ih/2):.0f}" class="ax">{_short((hi+lo)/2, a.unit)}</text>'
-            f'<text x="4" y="{y(lo):.0f}" class="ax">{_short(lo, a.unit)}</text>')
-
-    # data for the JS scrubber: pixel x/y + human date + value label
-    def datelabel(d):
-        try:
-            return datetime.fromisoformat(d).strftime("%b %-d, %Y")
-        except ValueError:
-            return d
-    data = [[round(x(i), 1), round(y(v), 1), datelabel(d), _fmt(v, a.unit)] for i, (d, v) in enumerate(pts)]
-    lo_v, hi_v = min(ys), max(ys)
-    rng = f'1-yr range {_fmt(lo_v, a.unit)} – {_fmt(hi_v, a.unit)}'
-
-    return (f'<div class="chartwrap">'
-            f'<svg class="ichart" viewBox="0 0 {w} {h}" data-w="{w}" data-h="{h}" '
-            f"data-pts='{json.dumps(data)}' role='img' aria-label='1 year of daily {a.metric}, scrub to read a day'>"
-            f'{band}{ticks}{ylab}'
-            f'<polyline fill="none" stroke="{_SERIES}" stroke-width="1.6" stroke-linejoin="round" points="{line}"/>'
-            f'<line class="cross" x1="0" y1="{pt}" x2="0" y2="{h-pb}" stroke="var(--fg)" stroke-width="1" opacity="0"/>'
-            f'<circle class="cdot" r="3.5" fill="{_SERIES}" stroke="var(--card)" stroke-width="1.5" opacity="0"/>'
-            f'</svg><div class="tip" hidden></div></div>'
-            f'<div class="crange">{rng} · <span class="muted">scrub the chart to read any day</span></div>')
+    return (f'<div class="chartwrap" data-gl="{a.good_low}" data-gh="{a.good_high}" '
+            f'data-unit="{a.unit}" data-series=\'{json.dumps(pts)}\'>'
+            f'<div class="rangebtns">'
+            f'<button type="button" data-r="7">7d</button>'
+            f'<button type="button" data-r="30" class="on">30d</button>'
+            f'<button type="button" data-r="366">1&nbsp;yr</button></div>'
+            f'<svg class="ichart" role="img" aria-label="daily {a.metric} history, scrub to read a day"></svg>'
+            f'<div class="tip" hidden></div><div class="crange"></div></div>')
 
 
 def _tags(a: Assessment) -> str:
@@ -190,25 +148,66 @@ def _summary(assessments: list[Assessment]) -> str:
 
 
 _JS = """
-document.querySelectorAll('.ichart').forEach(function(svg){
-  var pts=JSON.parse(svg.dataset.pts), W=+svg.dataset.w;
-  var wrap=svg.closest('.chartwrap'), tip=wrap.querySelector('.tip');
-  var cross=svg.querySelector('.cross'), dot=svg.querySelector('.cdot');
-  function move(clientX){
-    var r=svg.getBoundingClientRect(); var vx=(clientX-r.left)/r.width*W;
-    var best=0,bd=1e9; for(var i=0;i<pts.length;i++){var d=Math.abs(pts[i][0]-vx); if(d<bd){bd=d;best=i;}}
-    var p=pts[best];
-    cross.setAttribute('x1',p[0]); cross.setAttribute('x2',p[0]); cross.style.opacity=0.5;
-    dot.setAttribute('cx',p[0]); dot.setAttribute('cy',p[1]); dot.style.opacity=1;
-    tip.hidden=false; tip.innerHTML='<b>'+p[3]+'</b><br>'+p[2];
-    var px=p[0]/W*r.width; tip.style.left=Math.max(4,Math.min(px-tip.offsetWidth/2,r.width-tip.offsetWidth-4))+'px';
-  }
-  function end(){ cross.style.opacity=0; dot.style.opacity=0; tip.hidden=true; }
-  svg.addEventListener('pointermove',function(e){move(e.clientX);});
-  svg.addEventListener('pointerdown',function(e){move(e.clientX);});
+var MON=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var W=320,H=170,PL=36,PR=10,PT=12,PB=22;
+function fmtDate(d){var p=d.split('-');return MON[+p[1]]+' '+(+p[2])+', '+p[0];}
+function draw(wrap,range){
+  var all=JSON.parse(wrap.dataset.series), gl=+wrap.dataset.gl, gh=+wrap.dataset.gh, unit=wrap.dataset.unit;
+  var pts=all.slice(-range); var n=pts.length; if(n<2) return;
+  var ys=pts.map(function(p){return p[1];});
+  var lo=Math.min.apply(null,ys.concat([gl])), hi=Math.max.apply(null,ys.concat([gh]));
+  var pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad; var span=(hi-lo)||1;
+  var iw=W-PL-PR, ih=H-PT-PB;
+  var X=function(i){return PL+(n===1?iw/2:(i/(n-1))*iw);};
+  var Y=function(v){return PT+ih-((v-lo)/span)*ih;};
+  var fmt=unit==='m'?function(v){return v.toFixed(3)+' m';}:function(v){return Math.round(v).toLocaleString()+' cms';};
+  var sh=unit==='cms'?function(v){return Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':''+Math.round(v);}:function(v){return v.toFixed(2);};
+  var monthMode=range>60, s='';
+  s+='<rect x="'+PL+'" y="'+Y(gh).toFixed(1)+'" width="'+iw+'" height="'+Math.max(Y(gl)-Y(gh),0).toFixed(1)+'" fill="#2e9e5b" opacity="0.14"/>';
+  var lastX=-999,lastKey=null;
+  for(var i=0;i<n;i++){var d=pts[i][0]; var key=monthMode?d.slice(0,7):d;
+    if(key!==lastKey){lastKey=key; var xx=X(i);
+      if(xx-lastX>=42){lastX=xx; var lbl=monthMode?MON[+d.slice(5,7)]:(+d.slice(5,7))+'/'+(+d.slice(8,10));
+        s+='<line x1="'+xx.toFixed(1)+'" y1="'+PT+'" x2="'+xx.toFixed(1)+'" y2="'+(H-PB)+'" stroke="var(--line)"/>';
+        s+='<text x="'+xx.toFixed(1)+'" y="'+(H-6)+'" class="ax" text-anchor="middle">'+lbl+'</text>';}}}
+  s+='<text x="4" y="'+(Y(hi)+7).toFixed(0)+'" class="ax">'+sh(hi)+'</text>';
+  s+='<text x="4" y="'+(PT+ih/2).toFixed(0)+'" class="ax">'+sh((hi+lo)/2)+'</text>';
+  s+='<text x="4" y="'+Y(lo).toFixed(0)+'" class="ax">'+sh(lo)+'</text>';
+  var poly=''; for(var j=0;j<n;j++){poly+=X(j).toFixed(1)+','+Y(pts[j][1]).toFixed(1)+' ';}
+  s+='<polyline fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linejoin="round" points="'+poly+'"/>';
+  s+='<line class="cross" y1="'+PT+'" y2="'+(H-PB)+'" stroke="var(--fg)" stroke-width="1.5" opacity="0"/>';
+  s+='<circle class="cdot" r="5" fill="#2563eb" stroke="var(--card)" stroke-width="2" opacity="0"/>';
+  s+='<rect class="hit" x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent"/>';
+  var svg=wrap.querySelector('svg'); svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=s;
+  svg._pts=pts.map(function(p,i){return [X(i),Y(p[1]),fmtDate(p[0]),fmt(p[1])];}); svg._W=W;
+  var lo2=Math.min.apply(null,ys), hi2=Math.max.apply(null,ys);
+  var label=range<=7?'last 7 days':range<=30?'last 30 days':'last year';
+  wrap.querySelector('.crange').innerHTML=label+' · range '+fmt(lo2)+' – '+fmt(hi2)+' · <span class="muted">scrub to read a day</span>';
+}
+function scrub(svg,clientX){
+  var pts=svg._pts; if(!pts) return; var r=svg.getBoundingClientRect(); var vx=(clientX-r.left)/r.width*svg._W;
+  var best=0,bd=1e9; for(var i=0;i<pts.length;i++){var dx=Math.abs(pts[i][0]-vx); if(dx<bd){bd=dx;best=i;}}
+  var p=pts[best], cross=svg.querySelector('.cross'), dot=svg.querySelector('.cdot'), tip=svg.parentNode.querySelector('.tip');
+  cross.setAttribute('x1',p[0]); cross.setAttribute('x2',p[0]); cross.style.opacity=0.5;
+  dot.setAttribute('cx',p[0]); dot.setAttribute('cy',p[1]); dot.style.opacity=1;
+  tip.hidden=false; tip.innerHTML='<b>'+p[3]+'</b><br>'+p[2];
+  var px=p[0]/svg._W*r.width; tip.style.left=Math.max(4,Math.min(px-tip.offsetWidth/2,r.width-tip.offsetWidth-4))+'px';
+}
+document.querySelectorAll('.chartwrap').forEach(function(wrap){
+  var svg=wrap.querySelector('svg');
+  draw(wrap,30);
+  wrap.querySelectorAll('.rangebtns button').forEach(function(b){
+    b.addEventListener('click',function(){
+      wrap.querySelectorAll('.rangebtns button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); draw(wrap,+b.dataset.r);
+    });
+  });
+  function end(){var c=svg.querySelector('.cross'),d=svg.querySelector('.cdot');if(c)c.style.opacity=0;if(d)d.style.opacity=0;wrap.querySelector('.tip').hidden=true;}
+  svg.addEventListener('pointerdown',function(e){scrub(svg,e.clientX);});
+  svg.addEventListener('pointermove',function(e){if(e.pressure>0||e.buttons)scrub(svg,e.clientX);else scrub(svg,e.clientX);});
   svg.addEventListener('pointerleave',end);
-  svg.addEventListener('touchstart',function(e){move(e.touches[0].clientX);},{passive:true});
-  svg.addEventListener('touchmove',function(e){move(e.touches[0].clientX); e.preventDefault();},{passive:false});
+  svg.addEventListener('touchstart',function(e){scrub(svg,e.touches[0].clientX);},{passive:true});
+  svg.addEventListener('touchmove',function(e){scrub(svg,e.touches[0].clientX);e.preventDefault();},{passive:false});
   svg.addEventListener('touchend',end);
 });
 """
@@ -282,12 +281,17 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }}
   .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin:0 0 8px; }}
   .gbasis {{ font-size:.6rem; color:var(--muted); font-style:italic; margin:-4px 0 8px; }}
-  .chartwrap {{ position:relative; touch-action:pan-y; }}
-  .ichart {{ width:100%; height:auto; display:block; touch-action:pan-y; }}
+  .chartwrap {{ position:relative; }}
+  .rangebtns {{ display:flex; gap:5px; justify-content:flex-end; margin:2px 0 2px; }}
+  .rangebtns button {{ font:inherit; font-size:.68rem; font-weight:600; color:var(--muted); background:var(--bg);
+                       border:1px solid var(--line); border-radius:999px; padding:3px 10px; cursor:pointer;
+                       -webkit-tap-highlight-color:transparent; }}
+  .rangebtns button.on {{ color:#fff; background:var(--accent); border-color:var(--accent); }}
+  .ichart {{ width:100%; height:auto; display:block; touch-action:pan-y; cursor:crosshair; }}
   .ax {{ fill:var(--muted); font-size:8px; }}
   .chart-empty {{ font-size:.75rem; color:var(--muted); padding:26px 0; text-align:center; }}
-  .tip {{ position:absolute; top:2px; background:var(--fg); color:var(--bg); font-size:.7rem; line-height:1.25;
-          padding:4px 7px; border-radius:6px; pointer-events:none; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.3); }}
+  .tip {{ position:absolute; top:34px; background:var(--fg); color:var(--bg); font-size:.72rem; line-height:1.3;
+          padding:5px 8px; border-radius:7px; pointer-events:none; white-space:nowrap; box-shadow:0 1px 6px rgba(0,0,0,.35); z-index:2; }}
   .crange {{ font-size:.66rem; color:var(--muted); margin:2px 0 8px; }}
   .muted {{ color:var(--muted); }}
   .headline {{ margin:6px 0; font-weight:650; font-size:.95rem; }}
