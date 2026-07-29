@@ -1,22 +1,14 @@
-"""Generate a self-contained, mobile-first dashboard (docs/index.html).
+"""Generate docs/index.html — a mobile-first, installable dashboard.
 
-Layout, top to bottom:
-  * Header — title, local update time, summary tiles, auto-refresh.
-  * "Best bet" hero — the single most fishable river right now (or the closest).
-  * Rivers grouped by region. Each card shows:
-      verdict badge, current value + trend + "as of",
-      a level gauge (where the value sits low→blown-out),
-      a chart of recent readings flowing into the 1-3 day ML forecast,
-      forecast chips + model skill, plain-language advice, best time of day,
-      species tags, and an off-season note when applicable.
-
-Colors follow the dataviz skill: one data hue for the value series, reserved
-status colors (each always paired with a text label), recessive grid/ink text.
-No external assets — GitHub Pages ready; refreshes itself every 30 min.
+Per river: verdict, current value + trend, a level gauge, and an INTERACTIVE
+1-year history chart you can scrub (touch/drag) to read the level on any day.
+No forecasting — current conditions + history only. Installable as an iPhone
+home-screen web app (Add to Home Screen from Safari).
 """
 from __future__ import annotations
 
 import html
+import json
 from datetime import datetime, timezone
 
 from .analyze import Assessment, VERDICT_ORDER
@@ -32,11 +24,18 @@ _LABEL = {
     "TOO_LOW": "TOO LOW", "BLOWN_OUT": "BLOWN OUT", "NO_DATA": "NO DATA",
 }
 _SERIES = "#2563eb"
-_ZONE_COLORS = {"low": "#2f74d0", "good": "#2e9e5b", "high": "#d97706", "blown": "#d64545"}
+_ZONE = {"low": "#2f74d0", "good": "#2e9e5b", "high": "#d97706", "blown": "#d64545"}
+_MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
 def _fmt(v: float, unit: str) -> str:
     return f"{v:.3f} m" if unit == "m" else f"{v:,.0f} cms"
+
+
+def _short(v: float, unit: str) -> str:
+    if unit == "cms":
+        return f"{v/1000:.1f}k" if abs(v) >= 1000 else f"{v:.0f}"
+    return f"{v:.2f}"
 
 
 def _rel_time(updated: str | None, now: datetime) -> str:
@@ -52,132 +51,84 @@ def _rel_time(updated: str | None, now: datetime) -> str:
     if mins < 60:
         return f"{int(mins)}m ago"
     if mins < 48 * 60:
-        return f"{int(mins / 60)}h ago"
-    return f"{int(mins / 1440)}d ago"
+        return f"{int(mins/60)}h ago"
+    return f"{int(mins/1440)}d ago"
 
 
-# --------------------------------------------------------------------------- gauge
 def _gauge(a: Assessment) -> str:
-    """A slim bar showing where the current value sits: too-low | good | high | blown."""
     if a.value is None:
         return ""
     gl, gh, bl = a.good_low, a.good_high, a.blown_out
-    lo = min(gl, a.value)
-    hi = max(bl, a.value)
+    lo, hi = min(gl, a.value), max(bl, a.value)
     pad = (hi - lo) * 0.12 or 1.0
     lo, hi = lo - pad, hi + pad
     span = (hi - lo) or 1.0
-
-    def pct(v):
-        return max(0.0, min(100.0, (v - lo) / span * 100))
-
-    segs = [
-        (lo, gl, _ZONE_COLORS["low"]),
-        (gl, gh, _ZONE_COLORS["good"]),
-        (gh, bl, _ZONE_COLORS["high"]),
-        (bl, hi, _ZONE_COLORS["blown"]),
-    ]
-    bars = "".join(
-        f'<div style="position:absolute;left:{pct(s):.1f}%;width:{pct(e)-pct(s):.1f}%;'
-        f'top:0;bottom:0;background:{c};opacity:.55"></div>'
-        for s, e, c in segs if e > s
-    )
-    mpct = pct(a.value)
-    marker = (f'<div class="gmark" style="left:{mpct:.1f}%"></div>')
-    return (f'<div class="gauge" title="current position between low and blown-out">'
-            f'{bars}{marker}</div>'
+    pct = lambda v: max(0.0, min(100.0, (v - lo) / span * 100))
+    segs = [(lo, gl, _ZONE["low"]), (gl, gh, _ZONE["good"]), (gh, bl, _ZONE["high"]), (bl, hi, _ZONE["blown"])]
+    bars = "".join(f'<div style="position:absolute;left:{pct(s):.1f}%;width:{pct(e)-pct(s):.1f}%;top:0;bottom:0;'
+                   f'background:{c};opacity:.55"></div>' for s, e, c in segs if e > s)
+    return (f'<div class="gauge">{bars}<div class="gmark" style="left:{pct(a.value):.1f}%"></div></div>'
             f'<div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>')
 
 
-# --------------------------------------------------------------------------- chart
-def _chart(a: Assessment, data: StationData, width: int = 300, height: int = 118) -> str:
-    obs = [v for _, v in data.series(a.metric)][-48:]
-    fc_vals = [f.value for f in a.forecast]
-    if len(obs) < 2 and not fc_vals:
-        return '<div class="chart-empty">no recent readings</div>'
+def _history_chart(a: Assessment, series: list, w: int = 320, h: int = 150) -> str:
+    """Interactive 1-year daily chart: scrub with touch/mouse to read any day."""
+    pts = [(d, v) for d, v in (series or []) if v is not None]
+    today = datetime.now(timezone.utc).date().isoformat()
+    if a.value is not None and (not pts or pts[-1][0] != today):
+        pts = pts + [(today, a.value)]
+    if len(pts) < 5:
+        return '<div class="chart-empty">history is still building…</div>'
 
-    all_vals = obs + fc_vals + [a.good_low, a.good_high]
-    lo, hi = min(all_vals), max(all_vals)
-    pad = (hi - lo) * 0.10 or 1.0
+    ys = [v for _, v in pts]
+    lo, hi = min(ys + [a.good_low]), max(ys + [a.good_high])
+    pad = (hi - lo) * 0.08 or 1.0
     lo, hi = lo - pad, hi + pad
     span = (hi - lo) or 1.0
-    pl, pr, pt, pb = 34, 8, 8, 16
-    iw, ih = width - pl - pr, height - pt - pb
+    pl, pr, pt, pb = 36, 10, 12, 20
+    iw, ih = w - pl - pr, h - pt - pb
+    n = len(pts)
+    x = lambda i: pl + (i / (n - 1)) * iw
+    y = lambda v: pt + ih - ((v - lo) / span) * ih
 
-    def y(v):
-        return pt + ih - ((v - lo) / span) * ih
+    band = (f'<rect x="{pl}" y="{y(a.good_high):.1f}" width="{iw}" height="{max(y(a.good_low)-y(a.good_high),0):.1f}" '
+            f'fill="{_ZONE["good"]}" opacity="0.14"/>')
+    line = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, (_, v) in enumerate(pts))
 
-    n_obs, n_fc = len(obs), len(fc_vals)
-    total = max(n_obs + n_fc - 1, 1)
+    # month ticks, spaced so labels never bunch (min ~42px apart)
+    ticks, last_lbl_x, last_m = "", -999, None
+    for i, (d, _) in enumerate(pts):
+        m = d[:7]
+        if m != last_m:
+            last_m = m
+            xx = x(i)
+            if xx - last_lbl_x >= 42:
+                last_lbl_x = xx
+                ticks += (f'<line x1="{xx:.1f}" y1="{pt}" x2="{xx:.1f}" y2="{h-pb}" stroke="var(--line)" stroke-width="1"/>'
+                          f'<text x="{xx:.1f}" y="{h-6}" class="ax" text-anchor="middle">{_MON[int(d[5:7])]}</text>')
+    ylab = (f'<text x="4" y="{y(hi)+7:.0f}" class="ax">{_short(hi, a.unit)}</text>'
+            f'<text x="4" y="{(pt+ih/2):.0f}" class="ax">{_short((hi+lo)/2, a.unit)}</text>'
+            f'<text x="4" y="{y(lo):.0f}" class="ax">{_short(lo, a.unit)}</text>')
 
-    def x(i):
-        return pl + (i / total) * iw
+    # data for the JS scrubber: pixel x/y + human date + value label
+    def datelabel(d):
+        try:
+            return datetime.fromisoformat(d).strftime("%b %-d, %Y")
+        except ValueError:
+            return d
+    data = [[round(x(i), 1), round(y(v), 1), datelabel(d), _fmt(v, a.unit)] for i, (d, v) in enumerate(pts)]
+    lo_v, hi_v = min(ys), max(ys)
+    rng = f'1-yr range {_fmt(lo_v, a.unit)} – {_fmt(hi_v, a.unit)}'
 
-    band = (f'<rect x="{pl}" y="{y(a.good_high):.1f}" width="{iw}" '
-            f'height="{max(y(a.good_low)-y(a.good_high),0):.1f}" fill="{_STATUS["GO"]}" opacity="0.13"/>')
-    blown_line = ""
-    if lo <= a.blown_out <= hi:
-        blown_line = (f'<line x1="{pl}" y1="{y(a.blown_out):.1f}" x2="{width-pr}" y2="{y(a.blown_out):.1f}" '
-                      f'stroke="{_STATUS["BLOWN_OUT"]}" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/>')
-
-    # y-axis min/max labels
-    yaxis = (f'<text x="2" y="{y(hi)+8:.1f}" class="ax">{_short(hi, a.unit)}</text>'
-             f'<text x="2" y="{y(lo):.1f}" class="ax">{_short(lo, a.unit)}</text>')
-
-    obs_pts = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in enumerate(obs))
-    obs_line = (f'<polyline fill="none" stroke="{_SERIES}" stroke-width="2" stroke-linejoin="round" '
-                f'stroke-linecap="round" points="{obs_pts}"/>') if n_obs >= 2 else ""
-    now_dot = (f'<circle cx="{x(n_obs-1):.1f}" cy="{y(obs[-1]):.1f}" r="3" fill="{_SERIES}" '
-               f'stroke="var(--card)" stroke-width="1.5"/>') if n_obs else ""
-
-    fc_line = fc_dots = divider = xlabels = ""
-    if n_fc:
-        start_i = n_obs - 1 if n_obs else 0
-        anchor = obs[-1] if obs else fc_vals[0]
-        fpts = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in
-                        [(start_i, anchor)] + [(n_obs + j, v) for j, v in enumerate(fc_vals)])
-        fc_line = (f'<polyline fill="none" stroke="{_SERIES}" stroke-width="2" stroke-dasharray="4 3" '
-                   f'opacity="0.75" points="{fpts}"/>')
-        dots = []
-        for j, (f, v) in enumerate(zip(a.forecast, fc_vals)):
-            c = _STATUS.get(f.verdict, _SERIES)
-            dots.append(f'<circle cx="{x(n_obs+j):.1f}" cy="{y(v):.1f}" r="3.5" fill="{c}" '
-                        f'stroke="var(--card)" stroke-width="1.5">'
-                        f'<title>{f.label}: {_fmt(v, a.unit)} ({_LABEL[f.verdict]})</title></circle>')
-        fc_dots = "".join(dots)
-        xd = x(start_i)
-        divider = (f'<line x1="{xd:.1f}" y1="{pt}" x2="{xd:.1f}" y2="{height-pb}" '
-                   f'stroke="var(--line)" stroke-width="1" stroke-dasharray="1 3"/>')
-        xlabels = (f'<text x="{pl:.1f}" y="{height-3}" class="ax">-2d</text>'
-                   f'<text x="{xd:.1f}" y="{height-3}" class="ax" text-anchor="middle">now</text>'
-                   f'<text x="{width-pr:.1f}" y="{height-3}" class="ax" text-anchor="end">+{n_fc}d</text>')
-
-    return (f'<svg class="chart" viewBox="0 0 {width} {height}" role="img" '
-            f'aria-label="recent {a.metric} and forecast">'
-            f'{band}{blown_line}{yaxis}{divider}{obs_line}{now_dot}{fc_line}{fc_dots}{xlabels}</svg>')
-
-
-def _short(v: float, unit: str) -> str:
-    if unit == "cms":
-        return f"{v/1000:.1f}k" if abs(v) >= 1000 else f"{v:.0f}"
-    return f"{v:.1f}"
-
-
-# --------------------------------------------------------------------------- card pieces
-def _forecast_chips(a: Assessment) -> str:
-    if not a.forecast:
-        return ""
-    chips = "".join(
-        f'<span class="chip" style="--c:{_STATUS.get(f.verdict, "#8a94a6")}" title="{_LABEL[f.verdict]}">'
-        f'{html.escape(f.label)}: {_fmt(f.value, a.unit)}</span>' for f in a.forecast)
-    skill = ""
-    if a.forecast_skill is not None:
-        pct = int(round(a.forecast_skill * 100))
-        tag = "beats baseline" if a.forecast_skill > 0 else "weak"
-        skill = (f'<span class="skill" title="cross-validated skill vs a no-change baseline">'
-                 f'model {tag} ({pct:+d}%)</span>')
-    track = f'<div class="track" title="how this river\'s past forecasts scored vs what actually happened">📈 {html.escape(a.track_record)}</div>' if a.track_record else ""
-    return f'<div class="chips">{chips}{skill}</div>{track}'
+    return (f'<div class="chartwrap">'
+            f'<svg class="ichart" viewBox="0 0 {w} {h}" data-w="{w}" data-h="{h}" '
+            f"data-pts='{json.dumps(data)}' role='img' aria-label='1 year of daily {a.metric}, scrub to read a day'>"
+            f'{band}{ticks}{ylab}'
+            f'<polyline fill="none" stroke="{_SERIES}" stroke-width="1.6" stroke-linejoin="round" points="{line}"/>'
+            f'<line class="cross" x1="0" y1="{pt}" x2="0" y2="{h-pb}" stroke="var(--fg)" stroke-width="1" opacity="0"/>'
+            f'<circle class="cdot" r="3.5" fill="{_SERIES}" stroke="var(--card)" stroke-width="1.5" opacity="0"/>'
+            f'</svg><div class="tip" hidden></div></div>'
+            f'<div class="crange">{rng} · <span class="muted">scrub the chart to read any day</span></div>')
 
 
 def _tags(a: Assessment) -> str:
@@ -186,107 +137,45 @@ def _tags(a: Assessment) -> str:
     return f'<div class="tags">{off}{sp}</div>' if (sp or off) else ""
 
 
-def _year_chart(series: list, unit: str, gl: float, gh: float, w: int = 300, h: int = 96) -> str:
-    """1-year daily line with the good zone shaded, so you see when it was fishable."""
-    pts = [(d, v) for d, v in series if v is not None]
-    if len(pts) < 10:
-        return '<div class="chart-empty">history fills in over time</div>'
-    ys = [v for _, v in pts]
-    lo, hi = min(ys + [gl]), max(ys + [gh])
-    span = (hi - lo) or 1.0
-    pl, pr, pt, pb = 30, 6, 6, 14
-    iw, ih = w - pl - pr, h - pt - pb
-    n = len(pts)
-    x = lambda i: pl + (i / (n - 1)) * iw
-    y = lambda v: pt + ih - ((v - lo) / span) * ih
-    band = (f'<rect x="{pl}" y="{y(gh):.1f}" width="{iw}" height="{max(y(gl)-y(gh),0):.1f}" '
-            f'fill="{_STATUS["GO"]}" opacity="0.13"/>')
-    line = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, (_, v) in enumerate(pts))
-    ticks = ""
-    last = None
-    for i, (d, _) in enumerate(pts):
-        if d[:7] != last:
-            last = d[:7]
-            ticks += f'<text x="{x(i):.1f}" y="{h-3}" class="ax">{d[5:7]}</text>'
-    yl = (f'<text x="2" y="{y(hi)+7:.0f}" class="ax">{_short(hi, unit)}</text>'
-          f'<text x="2" y="{y(lo):.0f}" class="ax">{_short(lo, unit)}</text>')
-    return (f'<svg class="chart" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img" '
-            f'aria-label="1 year of daily {unit}">{band}{ticks}{yl}'
-            f'<polyline fill="none" stroke="{_SERIES}" stroke-width="1.2" points="{line}"/></svg>')
-
-
-def _history_block(a: Assessment, actuals: dict | None, bt: dict | None) -> str:
-    parts = []
-    if bt and bt.get("acc", {}).get("overall"):
-        o = bt["acc"]["overall"]
-        parts.append(f'<p class="acc">Backtest (1 yr, {o["n"]} forecasts): <b>{int(o["hit"]*100)}%</b> '
-                     f'verdict match · ±{o["mae"]} {a.unit} avg error <span class="muted">(in-sample estimate)</span></p>')
-    if a.track_record:
-        parts.append(f'<p class="acc">Live: {html.escape(a.track_record)}</p>')
-    if actuals and actuals.get("series"):
-        parts.append(_year_chart(actuals["series"], a.unit, a.good_low, a.good_high))
-        parts.append('<p class="muted" style="font-size:.62rem">1-year daily history · green = good zone · numbers = month</p>')
-    # recent forecast vs actual from the backtest series (newest first)
-    if bt and bt.get("series"):
-        fmt = (lambda x: f"{x:.3f}") if a.unit == "m" else (lambda x: f"{x:,.0f}")
-        rows = "".join(
-            f'<tr><td>{d[5:]}</td><td>{fmt(pred)}</td><td>{fmt(act)}</td>'
-            f'<td>{"✓" if hit else "✗"}</td></tr>'
-            for d, act, pred, hit in reversed(bt["series"][-12:]))
-        parts.append(f'<table class="ht"><thead><tr><th>date</th><th>forecast</th><th>actual</th><th></th></tr>'
-                     f'</thead><tbody>{rows}</tbody></table>')
-    if not parts:
-        return ""
-    return f'<details class="hist"><summary>📊 1-year history &amp; forecast accuracy</summary>{"".join(parts)}</details>'
-
-
-def _card(a: Assessment, data: StationData, now: datetime,
-          actuals: dict | None = None, bt: dict | None = None) -> str:
+def _card(a: Assessment, now: datetime, actuals: dict | None) -> str:
     color = _STATUS.get(a.verdict, "#8a94a6")
     arrow = {"rising": "↑", "falling": "↓", "steady": "→", "unknown": "·"}[a.trend]
     val = _fmt(a.value, a.unit) if a.value is not None else "—"
     rel = _rel_time(a.updated, now)
-    best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
     basis = f'<div class="gbasis">zones: {html.escape(a.threshold_basis)}</div>' if a.threshold_basis else ""
     warn = (f'<p class="warn">⚠️ {a.gauge_quality} gauge — {html.escape(a.gauge_note)}. '
-            f'Treat this verdict with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
+            f'Treat with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
+    best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
+    series = (actuals or {}).get("series", [])
     dim = "" if a.in_season else " dim"
     return f"""
     <article class="card{dim}" style="--accent:{color}">
       <header><h3>{html.escape(a.river)}</h3><span class="badge">{a.emoji} {_LABEL.get(a.verdict, a.verdict)}</span></header>
       <div class="topline"><span class="num">{val}</span><span class="trend">{arrow} {a.trend}</span>
         <span class="asof">{html.escape(rel)}</span></div>
-      {_gauge(a)}
-      {basis}
-      {_chart(a, data)}
-      {_forecast_chips(a)}
+      {_gauge(a)}{basis}
+      {_history_chart(a, series)}
       <p class="headline">{html.escape(a.headline)}</p>
       {warn}
       <p class="outlook">{html.escape(a.outlook)}</p>
       {best}
       {_tags(a)}
-      {_history_block(a, actuals, bt)}
       <footer><span>{html.escape(a.region)}</span><span>Station {html.escape(a.station)}</span></footer>
     </article>"""
 
 
-# --------------------------------------------------------------------------- hero + summary
 def _hero(assessments: list[Assessment]) -> str:
     rank = {v: i for i, v in enumerate(VERDICT_ORDER)}
     live = [a for a in assessments if a.verdict != "NO_DATA"]
     if not live:
         return '<div class="hero none"><b>No live data right now.</b> Check back shortly.</div>'
-    # best: prefer GO (esp. in-season & dropping), then GET_READY, then closest
-    def score(a):
-        return (rank.get(a.verdict, 99), 0 if a.in_season else 1, 0 if a.trend == "falling" else 1)
-    best = sorted(live, key=score)[0]
+    best = sorted(live, key=lambda a: (rank.get(a.verdict, 99), 0 if a.in_season else 1,
+                                       0 if a.trend == "falling" else 1))[0]
     if best.verdict in ("GO", "GET_READY"):
-        c = _STATUS[best.verdict]
-        return (f'<div class="hero" style="--h:{c}">'
-                f'<span class="htag">{best.emoji} BEST BET</span>'
-                f'<b>{html.escape(best.river)}</b> — {html.escape(best.headline)}'
-                f'{("<br><span class=hbest>🕐 "+html.escape(best.best_time)+"</span>") if best.best_time else ""}'
-                f'</div>')
+        return (f'<div class="hero" style="--h:{_STATUS[best.verdict]}">'
+                f'<span class="htag">{best.emoji} BEST BET</span><b>{html.escape(best.river)}</b> — '
+                f'{html.escape(best.headline)}'
+                f'{("<br><span class=hbest>🕐 "+html.escape(best.best_time)+"</span>") if best.best_time else ""}</div>')
     return (f'<div class="hero none">Nothing is prime right now. Closest: '
             f'<b>{html.escape(best.river)}</b> ({_LABEL[best.verdict]}) — {html.escape(best.headline)}</div>')
 
@@ -295,58 +184,79 @@ def _summary(assessments: list[Assessment]) -> str:
     counts = {}
     for a in assessments:
         counts[a.verdict] = counts.get(a.verdict, 0) + 1
-    tiles = "".join(
-        f'<div class="tile" style="--c:{_STATUS[v]}"><span class="tn">{counts[v]}</span>'
-        f'<span class="tl">{_LABEL[v]}</span></div>' for v in VERDICT_ORDER if counts.get(v))
+    tiles = "".join(f'<div class="tile" style="--c:{_STATUS[v]}"><span class="tn">{counts[v]}</span>'
+                    f'<span class="tl">{_LABEL[v]}</span></div>' for v in VERDICT_ORDER if counts.get(v))
     return f'<div class="tiles">{tiles}</div>'
 
 
-def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], generated: str,
-           actuals: dict | None = None, backtest: dict | None = None) -> str:
+_JS = """
+document.querySelectorAll('.ichart').forEach(function(svg){
+  var pts=JSON.parse(svg.dataset.pts), W=+svg.dataset.w;
+  var wrap=svg.closest('.chartwrap'), tip=wrap.querySelector('.tip');
+  var cross=svg.querySelector('.cross'), dot=svg.querySelector('.cdot');
+  function move(clientX){
+    var r=svg.getBoundingClientRect(); var vx=(clientX-r.left)/r.width*W;
+    var best=0,bd=1e9; for(var i=0;i<pts.length;i++){var d=Math.abs(pts[i][0]-vx); if(d<bd){bd=d;best=i;}}
+    var p=pts[best];
+    cross.setAttribute('x1',p[0]); cross.setAttribute('x2',p[0]); cross.style.opacity=0.5;
+    dot.setAttribute('cx',p[0]); dot.setAttribute('cy',p[1]); dot.style.opacity=1;
+    tip.hidden=false; tip.innerHTML='<b>'+p[3]+'</b><br>'+p[2];
+    var px=p[0]/W*r.width; tip.style.left=Math.max(4,Math.min(px-tip.offsetWidth/2,r.width-tip.offsetWidth-4))+'px';
+  }
+  function end(){ cross.style.opacity=0; dot.style.opacity=0; tip.hidden=true; }
+  svg.addEventListener('pointermove',function(e){move(e.clientX);});
+  svg.addEventListener('pointerdown',function(e){move(e.clientX);});
+  svg.addEventListener('pointerleave',end);
+  svg.addEventListener('touchstart',function(e){move(e.touches[0].clientX);},{passive:true});
+  svg.addEventListener('touchmove',function(e){move(e.touches[0].clientX); e.preventDefault();},{passive:false});
+  svg.addEventListener('touchend',end);
+});
+"""
+
+
+def render(results, generated: str, actuals: dict | None = None) -> str:
     now = datetime.now(timezone.utc)
     actuals = actuals or {}
-    backtest = backtest or {}
     rank = {v: i for i, v in enumerate(VERDICT_ORDER)}
     assessments = [a for a, _, _ in results]
 
-    # group by region; regions ordered by their best verdict
     regions: dict[str, list] = {}
-    for a, d, _ in results:
-        regions.setdefault(a.region or "Other", []).append((a, d))
-    def region_rank(items):
-        return min(rank.get(a.verdict, 99) for a, _ in items)
-    ordered_regions = sorted(regions.items(), key=lambda kv: (region_rank(kv[1]), kv[0]))
-
+    for a, _, _ in results:
+        regions.setdefault(a.region or "Other", []).append(a)
+    ordered = sorted(regions.items(),
+                     key=lambda kv: (min(rank.get(a.verdict, 99) for a in kv[1]), kv[0]))
     sections = []
-    for region, items in ordered_regions:
-        items.sort(key=lambda t: rank.get(t[0].verdict, 99))
-        cards = "\n".join(_card(a, d, now, actuals.get(a.station), backtest.get(a.station)) for a, d in items)
+    for region, items in ordered:
+        items.sort(key=lambda a: rank.get(a.verdict, 99))
+        cards = "\n".join(_card(a, now, actuals.get(a.station)) for a in items)
         sections.append(f'<section><h2 class="region">{html.escape(region)}</h2><div class="grid">{cards}</div></section>')
 
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="refresh" content="1800">
 <title>BC Salmon River Conditions</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1017">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BC Salmon">
+<link rel="apple-touch-icon" href="icon-180.png">
 <style>
-  :root {{ color-scheme: light dark; --bg:#f5f7fa; --fg:#0f172a; --card:#ffffff;
-           --muted:#5b6472; --line:#e3e8ef; }}
-  @media (prefers-color-scheme: dark) {{
-    :root {{ --bg:#0d1017; --fg:#e6eaf1; --card:#161b24; --muted:#93a0b4; --line:#232b38; }}
-  }}
+  :root {{ color-scheme: light dark; --bg:#f5f7fa; --fg:#0f172a; --card:#fff; --muted:#5b6472; --line:#e3e8ef; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --bg:#0d1017; --fg:#e6eaf1; --card:#161b24; --muted:#93a0b4; --line:#232b38; }} }}
   * {{ box-sizing:border-box; }}
   body {{ margin:0; font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
           background:var(--bg); color:var(--fg); -webkit-text-size-adjust:100%; }}
-  .wrap {{ max-width:1040px; margin:0 auto; padding:20px 14px 56px; }}
+  .wrap {{ max-width:1040px; margin:0 auto; padding:max(20px,env(safe-area-inset-top)) 14px 56px; }}
   h1 {{ font-size:1.5rem; margin:0 0 2px; }}
-  .sub {{ color:var(--muted); margin:0 0 14px; font-size:.86rem; }}
-  .hero {{ border-radius:14px; padding:14px 16px; margin:0 0 16px; background:var(--card);
-           border:1px solid var(--line); border-left:5px solid var(--h,#8a94a6); font-size:1rem; }}
-  .hero.none {{ --h:#8a94a6; color:var(--fg); }}
-  .htag {{ display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.06em; color:var(--h);
-           margin-right:8px; }}
+  .sub {{ color:var(--muted); margin:0 0 14px; font-size:.85rem; }}
+  .hero {{ border-radius:14px; padding:14px 16px; margin:0 0 16px; background:var(--card); border:1px solid var(--line);
+           border-left:5px solid var(--h,#8a94a6); }}
+  .hero.none {{ --h:#8a94a6; }}
+  .htag {{ font-size:.66rem; font-weight:800; letter-spacing:.06em; color:var(--h); margin-right:8px; }}
   .hbest {{ font-size:.82rem; color:var(--muted); }}
   .tiles {{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 20px; }}
   .tile {{ display:flex; flex-direction:column; align-items:center; min-width:70px; background:var(--card);
@@ -367,32 +277,22 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
   .num {{ font-size:1.7rem; font-weight:800; }}
   .trend {{ font-size:.82rem; color:var(--muted); }}
   .asof {{ margin-left:auto; font-size:.72rem; color:var(--muted); }}
-  .gauge {{ position:relative; height:12px; border-radius:6px; overflow:hidden; margin:2px 0 2px;
-            background:var(--line); }}
+  .gauge {{ position:relative; height:12px; border-radius:6px; overflow:hidden; margin:2px 0; background:var(--line); }}
   .gmark {{ position:absolute; top:-3px; width:3px; height:18px; background:var(--fg); border-radius:2px;
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }}
-  .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted);
-              margin:0 0 2px; letter-spacing:.03em; }}
-  .gbasis {{ font-size:.6rem; color:var(--muted); margin:0 0 8px; font-style:italic; }}
-  .chart {{ width:100%; height:auto; margin:2px 0 6px; }}
-  .chart-empty {{ font-size:.75rem; color:var(--muted); padding:22px 0; text-align:center; }}
+  .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin:0 0 8px; }}
+  .gbasis {{ font-size:.6rem; color:var(--muted); font-style:italic; margin:-4px 0 8px; }}
+  .chartwrap {{ position:relative; touch-action:pan-y; }}
+  .ichart {{ width:100%; height:auto; display:block; touch-action:pan-y; }}
   .ax {{ fill:var(--muted); font-size:8px; }}
-  .chips {{ display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 8px; }}
-  .chip {{ font-size:.72rem; font-weight:600; border:1px solid var(--c); border-left:4px solid var(--c);
-           border-radius:6px; padding:2px 7px; }}
-  .skill {{ font-size:.66rem; color:var(--muted); align-self:center; }}
-  .track {{ font-size:.68rem; color:var(--muted); margin:0 0 6px; }}
-  .hist {{ margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }}
-  .hist summary {{ cursor:pointer; font-size:.78rem; font-weight:600; color:var(--muted); }}
-  .hist summary:hover {{ color:var(--fg); }}
-  .hist .acc {{ font-size:.76rem; color:var(--muted); margin:8px 0 4px; }}
-  .hist .muted, .muted {{ color:var(--muted); }}
-  .ht {{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.72rem; }}
-  .ht th, .ht td {{ text-align:left; padding:2px 6px; border-bottom:1px solid var(--line); }}
-  .ht th {{ color:var(--muted); font-weight:600; }}
-  .headline {{ margin:5px 0; font-weight:650; font-size:.95rem; }}
+  .chart-empty {{ font-size:.75rem; color:var(--muted); padding:26px 0; text-align:center; }}
+  .tip {{ position:absolute; top:2px; background:var(--fg); color:var(--bg); font-size:.7rem; line-height:1.25;
+          padding:4px 7px; border-radius:6px; pointer-events:none; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.3); }}
+  .crange {{ font-size:.66rem; color:var(--muted); margin:2px 0 8px; }}
+  .muted {{ color:var(--muted); }}
+  .headline {{ margin:6px 0; font-weight:650; font-size:.95rem; }}
   .outlook {{ margin:5px 0; font-size:.84rem; color:var(--muted); }}
-  .warn {{ margin:6px 0; font-size:.78rem; color:#b45309; background:color-mix(in srgb, #d97706 12%, transparent);
+  .warn {{ margin:6px 0; font-size:.78rem; color:#b45309; background:color-mix(in srgb,#d97706 12%,transparent);
            border-radius:8px; padding:6px 9px; }}
   @media (prefers-color-scheme: dark) {{ .warn {{ color:#f0b866; }} }}
   .best {{ margin:6px 0; font-size:.8rem; background:color-mix(in srgb, var(--accent) 10%, transparent);
@@ -402,31 +302,20 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
   .tag.off {{ background:transparent; border:1px dashed var(--muted); }}
   .card footer {{ display:flex; justify-content:space-between; font-size:.68rem; color:var(--muted);
                   margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }}
-  .legend {{ font-size:.72rem; color:var(--muted); margin:22px 0 0; display:flex; gap:16px; flex-wrap:wrap; }}
-  .legend span::before {{ content:""; display:inline-block; width:14px; height:3px; margin-right:5px; vertical-align:middle; }}
-  .lg-obs::before {{ background:{_SERIES}; }}
-  .lg-fc::before {{ background-image:repeating-linear-gradient(90deg,{_SERIES} 0 4px,transparent 4px 7px); }}
-  .lg-zone::before {{ background:{_STATUS['GO']}; opacity:.4; height:10px; }}
   .foot {{ margin-top:24px; font-size:.76rem; color:var(--muted); text-align:center; }}
-  a {{ color:inherit; }}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🎣 BC Salmon River Conditions</h1>
-  <p class="sub">Live level/flow · 1-3 day ML forecast · rain outlook. Updated {html.escape(generated)}.
-     Auto-refreshes every 30 min. Tap “1-year history” on any river. Not a safety guarantee — check conditions yourself.</p>
+  <p class="sub">Live level/flow + 1-year history. Updated {html.escape(generated)}.
+     Scrub any chart to read a day. Add to Home Screen for an app. Not a safety guarantee.</p>
   {_hero(assessments)}
   {_summary(assessments)}
   {"".join(sections)}
-  <div class="legend">
-    <span class="lg-obs">observed</span>
-    <span class="lg-fc">forecast (1-3 d)</span>
-    <span class="lg-zone">good zone</span>
-  </div>
-  <p class="foot">Water: Environment and Climate Change Canada (wateroffice.ec.gc.ca).
-     Rain: Open-Meteo. Forecast: ridge regression trained per station.
-     Thresholds are estimates — calibrate in config/rivers.yaml.</p>
+  <p class="foot">Water: Environment and Climate Change Canada (wateroffice.ec.gc.ca). Rain: Open-Meteo.
+     Thresholds calibrated per month from each station's history.</p>
 </div>
+<script>{_JS}</script>
 </body>
 </html>"""

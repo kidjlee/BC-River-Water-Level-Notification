@@ -34,14 +34,8 @@ jobs:
       - name: Diagnose gauge quality (flag tidal/flat gauges)
         run: python tools/diagnose.py || true
 
-      - name: Train any missing models
-        run: python tools/train_forecast.py --missing-only || true
-
       - name: Backfill 1-year daily actuals (history page)
         run: python tools/backfill_actuals.py || true
-
-      - name: Backtest forecasts over the past year
-        run: python tools/backtest.py || true
 
       - name: Build dashboard
         run: python -m src.main --no-notify
@@ -50,8 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json data/backtest.json docs/index.html state/state.json data/history.jsonl
-          git add -f models/*.json 2>/dev/null || true
+          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json docs/index.html state/state.json
           if git diff --cached --quiet; then
             echo "Nothing to commit."; exit 0
           fi

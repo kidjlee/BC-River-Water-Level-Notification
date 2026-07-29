@@ -245,27 +245,13 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
     headline = _headline(verdict, value, unit, trend)
     best_time = _best_time_of_day(data, metric, river.get("fed_by", "rain"))
 
-    # --- ML forecast (fall back to heuristic outlook) ----------------------
-    day_forecasts: list[DayForecast] = []
-    skill = None
-    models = fc.load_models(station)
-    if models:
-        rp1, rp3, rcum = _rain_features(rain)
-        d1 = _delta_over_days(data, metric, 1)
-        d3 = _delta_over_days(data, metric, 3)
-        doy = int(ts.astimezone(BC_TZ).timetuple().tm_yday)
-        preds = fc.predict(models, value, d1, d3, rp1, rp3, rcum, doy)
-        skill = round(sum(p.skill for p in preds) / len(preds), 2) if preds else None
-        for p in preds:
-            z = _zone(p.value, gl, gh, bl)
-            v = _verdict_for_zone(z, "steady", None, caution_rate)
-            day_forecasts.append(DayForecast(day=p.horizon_days, value=p.value, verdict=v, label=_labels(p.horizon_days)))
-
-    outlook = _outlook(zone, trend, rain, day_forecasts, unit)
+    # Forecasting removed by request (river-level prediction wasn't accurate).
+    # We report current conditions + trend + rain context only.
+    outlook = _outlook(zone, trend, rain, [], unit)
     return Assessment(**base, verdict=verdict, value=round(value, 3), trend=trend,
                       rate_per_h=(round(rate, 3) if rate is not None else None),
                       headline=headline, outlook=outlook, zone=zone, updated=ts.isoformat(),
-                      best_time=best_time, forecast=day_forecasts, forecast_skill=skill)
+                      best_time=best_time, forecast=[], forecast_skill=None)
 
 
 def _headline(verdict: str, value: float, unit: str, trend: str) -> str:

@@ -41,22 +41,15 @@ jobs:
       - name: Backfill 1-year daily actuals
         run: python tools/backfill_actuals.py || true
 
-      - name: Backtest forecasts over the past year
-        run: python tools/backtest.py || true
-
-      - name: Train models
-        run: python tools/train_forecast.py
-
       - name: Commit models + thresholds
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f models/*.json
-          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json data/backtest.json
+          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json
           if git diff --cached --quiet; then
             echo "Nothing to commit."; exit 0
           fi
-          git commit -m "Retrain models + refresh monthly thresholds [skip ci]"
+          git commit -m "Refresh calibration, diagnostics, and 1-year actuals [skip ci]"
           for i in 1 2 3 4 5; do
             git push && exit 0
             git pull --rebase -X ours origin main || true

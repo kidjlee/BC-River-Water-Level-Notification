@@ -2,7 +2,7 @@
 
 Run:
     python -m src.main                 # live run (needs internet)
-    python -m src.main --demo          # offline: synthetic data, trains models
+    python -m src.main --demo          # offline: synthetic data
     python -m src.main --no-notify     # skip sending (dashboard only)
     python -m src.main --force-notify  # notify all alertable, ignore state
 
@@ -12,21 +12,20 @@ run on a schedule (cron / GitHub Actions).
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
-import json
-
-from . import analyze, dashboard, forecast, history, notify, state
+from . import analyze, dashboard, notify, state
 from .sources import StationData, fetch_station
 from .weather import RainOutlook, fetch_rain
 
 CONFIG = Path("config/rivers.yaml")
 DASHBOARD_OUT = Path("docs/index.html")
-BACKTEST_FILE = Path("data/backtest.json")
+ACTUALS_FILE = Path("data/actuals_daily.json")
 
 
 def _load_json(path: Path) -> dict:
@@ -55,11 +54,6 @@ def check_river_live(river: dict, defaults: dict):
 
 def check_river_demo(river: dict, defaults: dict):
     from . import demo
-    # Train a model on synthetic history so the forecast path is exercised.
-    doys, values, rain_daily = demo.historical(river)
-    models = forecast.train_from_daily(doys, values, rain_daily)
-    if models:
-        forecast.save_models(river["station"], models)
     data = demo.live(river)
     rain = demo.rain_outlook(river)
     return analyze.assess(river, data, rain, defaults), data, rain
@@ -83,31 +77,18 @@ def main(argv=None) -> int:
     results = []
     for river in rivers:
         a, data, rain = check(river, defaults)
-        skill = f" [model {a.forecast_skill:+.0%}]" if a.forecast_skill is not None else ""
-        print(f"{a.emoji} {a.river}: {a.verdict} — {a.headline}{skill}")
-        if a.best_time:
-            print(f"     best time: {a.best_time}")
+        print(f"{a.emoji} {a.river}: {a.verdict} — {a.headline}")
         results.append((a, data, rain))
 
     assessments = [a for a, _, _ in results]
-
-    # Log this run's forecasts, then score past forecasts against actuals.
-    history.record(assessments)
-    acc = history.evaluate()
-    for a in assessments:
-        st = acc.get(a.station)
-        if st and st.get("n", 0) >= 5:
-            a.track_record = (f"{st['n']} forecasts checked · {int(st['hit_rate']*100)}% verdict match "
-                              f"· ±{st['mae']} {a.unit} avg error")
-
     generated = datetime.now(timezone.utc).strftime("%b %d, %Y %H:%M UTC")
     if args.demo:
         generated += " (DEMO — synthetic data)"
-    # 1-year actuals + backtest power each river's inline history section.
-    actuals = history.load_actuals()
-    backtest = _load_json(BACKTEST_FILE)
+
+    # 1-year daily actuals power each river's interactive history chart.
+    actuals = _load_json(ACTUALS_FILE)
     DASHBOARD_OUT.parent.mkdir(parents=True, exist_ok=True)
-    DASHBOARD_OUT.write_text(dashboard.render(results, generated, actuals, backtest))
+    DASHBOARD_OUT.write_text(dashboard.render(results, generated, actuals))
     print(f"[dashboard] wrote {DASHBOARD_OUT}")
 
     if not args.no_notify:

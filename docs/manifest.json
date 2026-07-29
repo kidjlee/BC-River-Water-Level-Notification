@@ -1,0 +1,14 @@
+{
+  "name": "BC Salmon River Conditions",
+  "short_name": "BC Salmon",
+  "description": "Live BC salmon river levels + 1-year history",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1017",
+  "theme_color": "#0d1017",
+  "start_url": "./",
+  "icons": [
+    {"src": "icon-180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
