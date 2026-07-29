@@ -124,7 +124,7 @@ rivers:
   - name: "Coquitlam River"
     station: "08MH141"          # Coquitlam R ABOVE Coquitlam Lake (non-tidal upper river)
     notify: true
-    verified: false
+    verified: true
     lat: 49.48794
     lon: -122.79251
     metric: level
@@ -132,9 +132,9 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["chum", "coho", "chinook"]
-    good_low: 0.30
-    good_high: 0.80
-    blown_out: 1.50
+    good_low: 1.75
+    good_high: 1.88
+    blown_out: 2.14
     notes: "Swapped from tidal mouth gauge (08MH002) to the non-tidal upper river above the reservoir; reflects watershed rain. Thresholds pending calibration."
 
   - name: "Alouette River"
