@@ -89,7 +89,7 @@ def _reject_outliers(readings: list["Reading"], attr: str) -> None:
             setattr(r, attr, None)
 
 
-def fetch_station(station: str, prov: str = "BC", hours_back: int = 96, timeout: int = 60) -> StationData:
+def fetch_station(station: str, prov: str = "BC", hours_back: int = 720, timeout: int = 60) -> StationData:
     """Fetch recent real-time readings for one station via the OGC API."""
     start = (datetime.now(timezone.utc) - timedelta(hours=hours_back)).strftime("%Y-%m-%dT%H:%M:%SZ")
     params = {

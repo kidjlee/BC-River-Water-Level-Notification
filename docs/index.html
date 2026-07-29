@@ -340,7 +340,12 @@ var W=320,H=170,PL=36,PR=10,PT=12,PB=22;
 function fmtDate(d){var p=d.split('-');return MON[+p[1]]+' '+(+p[2])+', '+p[0];}
 function draw(wrap,range){
   var all=JSON.parse(wrap.dataset.series), gl=+wrap.dataset.gl, gh=+wrap.dataset.gh, unit=wrap.dataset.unit;
-  var pts=all.slice(-range); var n=pts.length; if(n<2) return;
+  // window by CALENDAR DAYS (not point count), so gaps don't drag in old dates
+  var lastMs=new Date(all[all.length-1][0]+'T00:00:00Z').getTime();
+  var cut=lastMs-(range-1)*86400000;
+  var pts=all.filter(function(p){return new Date(p[0]+'T00:00:00Z').getTime()>=cut;});
+  if(pts.length<2) pts=all.slice(-2);
+  var n=pts.length;
   var ys=pts.map(function(p){return p[1];});
   var lo=Math.min.apply(null,ys.concat([gl])), hi=Math.max.apply(null,ys.concat([gh]));
   var pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad; var span=(hi-lo)||1;
