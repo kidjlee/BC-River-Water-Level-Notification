@@ -348,7 +348,8 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
 <div class="wrap">
   <h1>🎣 BC Salmon River Conditions</h1>
   <p class="sub">Live level/flow · 1-3 day ML forecast · rain outlook. Updated {html.escape(generated)}.
-     Auto-refreshes every 30 min. Not a safety guarantee — check conditions yourself.</p>
+     Auto-refreshes every 30 min. Not a safety guarantee — check conditions yourself.
+     <a href="history.html" style="color:#2563eb;white-space:nowrap;">📜 Forecast history →</a></p>
   {_hero(assessments)}
   {_summary(assessments)}
   {"".join(sections)}

@@ -18,20 +18,74 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 HIST = Path(os.getenv("HISTORY_FILE", "data/history.jsonl"))
-MATCH_WINDOW_H = 18   # how close a later observation must be to a forecast's target day
+ACTUALS = Path("data/actuals_daily.json")
+MATCH_WINDOW_H = 18    # how close a later observation must be to a forecast's target day
+RETAIN_DAYS = 120      # prune the hourly log to bound repo size (still months of scoring)
 
 
 def record(assessments, now: datetime | None = None) -> None:
-    now = (now or datetime.now(timezone.utc)).isoformat()
+    now_dt = now or datetime.now(timezone.utc)
     HIST.parent.mkdir(parents=True, exist_ok=True)
     with HIST.open("a") as f:
         for a in assessments:
             if a.value is None:
                 continue
             f.write(json.dumps({
-                "t": now, "s": a.station, "v": a.value, "vd": a.verdict,
+                "t": now_dt.isoformat(), "s": a.station, "v": a.value, "vd": a.verdict,
                 "fc": [[d.day, d.value, d.verdict] for d in a.forecast],
             }) + "\n")
+    _prune(now_dt)
+
+
+def _prune(now_dt: datetime) -> None:
+    if not HIST.exists():
+        return
+    cutoff = now_dt - timedelta(days=RETAIN_DAYS)
+    kept = []
+    for ln in HIST.read_text().splitlines():
+        try:
+            if datetime.fromisoformat(json.loads(ln)["t"]) >= cutoff:
+                kept.append(ln)
+        except (json.JSONDecodeError, KeyError, ValueError):
+            continue
+    HIST.write_text("\n".join(kept) + ("\n" if kept else ""))
+
+
+def load_actuals() -> dict:
+    if ACTUALS.exists():
+        try:
+            return json.loads(ACTUALS.read_text())
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def recent_matches(station: str, limit: int = 24) -> list[dict]:
+    """Recent forecast -> actual comparisons for one station, newest first."""
+    recs = [r for r in _load() if r.get("s") == station]
+    obs = sorted((datetime.fromisoformat(r["t"]), r["v"], r["vd"]) for r in recs)
+    rows = []
+    for r in recs:
+        try:
+            t = datetime.fromisoformat(r["t"])
+        except (KeyError, ValueError):
+            continue
+        for day, pred_val, pred_vd in r.get("fc", []):
+            target = t + timedelta(days=day)
+            best = None
+            best_dt = None
+            for ot, ov, ovd in obs:
+                gap = abs((ot - target).total_seconds())
+                if gap <= MATCH_WINDOW_H * 3600 and (best_dt is None or gap < best_dt):
+                    best_dt, best = gap, (ot, ov, ovd)
+            if best is None:
+                continue
+            ot, ov, ovd = best
+            rows.append({"made": t, "target": ot, "day": day, "pred": pred_val,
+                         "actual": ov, "pred_vd": pred_vd, "actual_vd": ovd,
+                         "hit": pred_vd == ovd})
+    rows.sort(key=lambda x: x["target"], reverse=True)
+    return rows[:limit]
 
 
 def _load(max_lines: int = 40000) -> list[dict]:

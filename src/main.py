@@ -18,12 +18,13 @@ from pathlib import Path
 
 import yaml
 
-from . import analyze, dashboard, forecast, history, notify, state
+from . import analyze, dashboard, forecast, history, history_page, notify, state
 from .sources import StationData, fetch_station
 from .weather import RainOutlook, fetch_rain
 
 CONFIG = Path("config/rivers.yaml")
 DASHBOARD_OUT = Path("docs/index.html")
+HISTORY_OUT = Path("docs/history.html")
 
 
 def load_config() -> dict:
@@ -96,6 +97,11 @@ def main(argv=None) -> int:
     DASHBOARD_OUT.parent.mkdir(parents=True, exist_ok=True)
     DASHBOARD_OUT.write_text(dashboard.render(results, generated))
     print(f"[dashboard] wrote {DASHBOARD_OUT}")
+
+    # Forecast/conditions history page (1-year actuals + forecast track record).
+    meta = [(a.river, a.station, a.region, a.unit) for a in assessments]
+    HISTORY_OUT.write_text(history_page.render(meta, history.load_actuals(), acc, generated))
+    print(f"[history] wrote {HISTORY_OUT}")
 
     if not args.no_notify:
         previous = {} if args.force_notify else state.load()
