@@ -1,0 +1,26 @@
+name: Discover stations
+
+# Manual helper: list ECCC gauges matching a name so we can pick the right one.
+on:
+  workflow_dispatch:
+    inputs:
+      names:
+        description: "Comma-separated river-name search terms"
+        default: "coquitlam,pitt"
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Search
+        run: |
+          IFS=',' read -ra TERMS <<< "${{ inputs.names }}"
+          for t in "${TERMS[@]}"; do
+            echo "===== $t ====="
+            python tools/discover_stations.py --search "$t" || true
+          done
