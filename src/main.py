@@ -18,13 +18,22 @@ from pathlib import Path
 
 import yaml
 
-from . import analyze, dashboard, forecast, history, history_page, notify, state
+import json
+
+from . import analyze, dashboard, forecast, history, notify, state
 from .sources import StationData, fetch_station
 from .weather import RainOutlook, fetch_rain
 
 CONFIG = Path("config/rivers.yaml")
 DASHBOARD_OUT = Path("docs/index.html")
-HISTORY_OUT = Path("docs/history.html")
+BACKTEST_FILE = Path("data/backtest.json")
+
+
+def _load_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
 
 
 def load_config() -> dict:
@@ -94,14 +103,12 @@ def main(argv=None) -> int:
     generated = datetime.now(timezone.utc).strftime("%b %d, %Y %H:%M UTC")
     if args.demo:
         generated += " (DEMO — synthetic data)"
+    # 1-year actuals + backtest power each river's inline history section.
+    actuals = history.load_actuals()
+    backtest = _load_json(BACKTEST_FILE)
     DASHBOARD_OUT.parent.mkdir(parents=True, exist_ok=True)
-    DASHBOARD_OUT.write_text(dashboard.render(results, generated))
+    DASHBOARD_OUT.write_text(dashboard.render(results, generated, actuals, backtest))
     print(f"[dashboard] wrote {DASHBOARD_OUT}")
-
-    # Forecast/conditions history page (1-year actuals + forecast track record).
-    meta = [(a.river, a.station, a.region, a.unit) for a in assessments]
-    HISTORY_OUT.write_text(history_page.render(meta, history.load_actuals(), acc, generated))
-    print(f"[history] wrote {HISTORY_OUT}")
 
     if not args.no_notify:
         previous = {} if args.force_notify else state.load()

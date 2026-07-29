@@ -186,7 +186,62 @@ def _tags(a: Assessment) -> str:
     return f'<div class="tags">{off}{sp}</div>' if (sp or off) else ""
 
 
-def _card(a: Assessment, data: StationData, now: datetime) -> str:
+def _year_chart(series: list, unit: str, gl: float, gh: float, w: int = 300, h: int = 96) -> str:
+    """1-year daily line with the good zone shaded, so you see when it was fishable."""
+    pts = [(d, v) for d, v in series if v is not None]
+    if len(pts) < 10:
+        return '<div class="chart-empty">history fills in over time</div>'
+    ys = [v for _, v in pts]
+    lo, hi = min(ys + [gl]), max(ys + [gh])
+    span = (hi - lo) or 1.0
+    pl, pr, pt, pb = 30, 6, 6, 14
+    iw, ih = w - pl - pr, h - pt - pb
+    n = len(pts)
+    x = lambda i: pl + (i / (n - 1)) * iw
+    y = lambda v: pt + ih - ((v - lo) / span) * ih
+    band = (f'<rect x="{pl}" y="{y(gh):.1f}" width="{iw}" height="{max(y(gl)-y(gh),0):.1f}" '
+            f'fill="{_STATUS["GO"]}" opacity="0.13"/>')
+    line = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, (_, v) in enumerate(pts))
+    ticks = ""
+    last = None
+    for i, (d, _) in enumerate(pts):
+        if d[:7] != last:
+            last = d[:7]
+            ticks += f'<text x="{x(i):.1f}" y="{h-3}" class="ax">{d[5:7]}</text>'
+    yl = (f'<text x="2" y="{y(hi)+7:.0f}" class="ax">{_short(hi, unit)}</text>'
+          f'<text x="2" y="{y(lo):.0f}" class="ax">{_short(lo, unit)}</text>')
+    return (f'<svg class="chart" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img" '
+            f'aria-label="1 year of daily {unit}">{band}{ticks}{yl}'
+            f'<polyline fill="none" stroke="{_SERIES}" stroke-width="1.2" points="{line}"/></svg>')
+
+
+def _history_block(a: Assessment, actuals: dict | None, bt: dict | None) -> str:
+    parts = []
+    if bt and bt.get("acc", {}).get("overall"):
+        o = bt["acc"]["overall"]
+        parts.append(f'<p class="acc">Backtest (1 yr, {o["n"]} forecasts): <b>{int(o["hit"]*100)}%</b> '
+                     f'verdict match · ±{o["mae"]} {a.unit} avg error <span class="muted">(in-sample estimate)</span></p>')
+    if a.track_record:
+        parts.append(f'<p class="acc">Live: {html.escape(a.track_record)}</p>')
+    if actuals and actuals.get("series"):
+        parts.append(_year_chart(actuals["series"], a.unit, a.good_low, a.good_high))
+        parts.append('<p class="muted" style="font-size:.62rem">1-year daily history · green = good zone · numbers = month</p>')
+    # recent forecast vs actual from the backtest series (newest first)
+    if bt and bt.get("series"):
+        fmt = (lambda x: f"{x:.3f}") if a.unit == "m" else (lambda x: f"{x:,.0f}")
+        rows = "".join(
+            f'<tr><td>{d[5:]}</td><td>{fmt(pred)}</td><td>{fmt(act)}</td>'
+            f'<td>{"✓" if hit else "✗"}</td></tr>'
+            for d, act, pred, hit in reversed(bt["series"][-12:]))
+        parts.append(f'<table class="ht"><thead><tr><th>date</th><th>forecast</th><th>actual</th><th></th></tr>'
+                     f'</thead><tbody>{rows}</tbody></table>')
+    if not parts:
+        return ""
+    return f'<details class="hist"><summary>📊 1-year history &amp; forecast accuracy</summary>{"".join(parts)}</details>'
+
+
+def _card(a: Assessment, data: StationData, now: datetime,
+          actuals: dict | None = None, bt: dict | None = None) -> str:
     color = _STATUS.get(a.verdict, "#8a94a6")
     arrow = {"rising": "↑", "falling": "↓", "steady": "→", "unknown": "·"}[a.trend]
     val = _fmt(a.value, a.unit) if a.value is not None else "—"
@@ -210,6 +265,7 @@ def _card(a: Assessment, data: StationData, now: datetime) -> str:
       <p class="outlook">{html.escape(a.outlook)}</p>
       {best}
       {_tags(a)}
+      {_history_block(a, actuals, bt)}
       <footer><span>{html.escape(a.region)}</span><span>Station {html.escape(a.station)}</span></footer>
     </article>"""
 
@@ -245,8 +301,11 @@ def _summary(assessments: list[Assessment]) -> str:
     return f'<div class="tiles">{tiles}</div>'
 
 
-def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], generated: str) -> str:
+def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], generated: str,
+           actuals: dict | None = None, backtest: dict | None = None) -> str:
     now = datetime.now(timezone.utc)
+    actuals = actuals or {}
+    backtest = backtest or {}
     rank = {v: i for i, v in enumerate(VERDICT_ORDER)}
     assessments = [a for a, _, _ in results]
 
@@ -261,7 +320,7 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
     sections = []
     for region, items in ordered_regions:
         items.sort(key=lambda t: rank.get(t[0].verdict, 99))
-        cards = "\n".join(_card(a, d, now) for a, d in items)
+        cards = "\n".join(_card(a, d, now, actuals.get(a.station), backtest.get(a.station)) for a, d in items)
         sections.append(f'<section><h2 class="region">{html.escape(region)}</h2><div class="grid">{cards}</div></section>')
 
     return f"""<!doctype html>
@@ -323,6 +382,14 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
            border-radius:6px; padding:2px 7px; }}
   .skill {{ font-size:.66rem; color:var(--muted); align-self:center; }}
   .track {{ font-size:.68rem; color:var(--muted); margin:0 0 6px; }}
+  .hist {{ margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }}
+  .hist summary {{ cursor:pointer; font-size:.78rem; font-weight:600; color:var(--muted); }}
+  .hist summary:hover {{ color:var(--fg); }}
+  .hist .acc {{ font-size:.76rem; color:var(--muted); margin:8px 0 4px; }}
+  .hist .muted, .muted {{ color:var(--muted); }}
+  .ht {{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.72rem; }}
+  .ht th, .ht td {{ text-align:left; padding:2px 6px; border-bottom:1px solid var(--line); }}
+  .ht th {{ color:var(--muted); font-weight:600; }}
   .headline {{ margin:5px 0; font-weight:650; font-size:.95rem; }}
   .outlook {{ margin:5px 0; font-size:.84rem; color:var(--muted); }}
   .warn {{ margin:6px 0; font-size:.78rem; color:#b45309; background:color-mix(in srgb, #d97706 12%, transparent);
@@ -348,8 +415,7 @@ def render(results: list[tuple[Assessment, StationData, RainOutlook | None]], ge
 <div class="wrap">
   <h1>🎣 BC Salmon River Conditions</h1>
   <p class="sub">Live level/flow · 1-3 day ML forecast · rain outlook. Updated {html.escape(generated)}.
-     Auto-refreshes every 30 min. Not a safety guarantee — check conditions yourself.
-     <a href="history.html" style="color:#2563eb;white-space:nowrap;">📜 Forecast history →</a></p>
+     Auto-refreshes every 30 min. Tap “1-year history” on any river. Not a safety guarantee — check conditions yourself.</p>
   {_hero(assessments)}
   {_summary(assessments)}
   {"".join(sections)}
