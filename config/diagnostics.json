@@ -22,13 +22,29 @@
       1.29
     ],
     "band_width": 0.48,
-    "intra_day_swing": 0.116,
+    "intra_day_swing": 0.19,
     "median": 0.941,
     "month_max": 1.704,
     "month_min": 0.51,
     "note": "band sits inside a normally-varying gauge",
     "p10": 0.715,
     "p90": 1.391,
+    "quality": "OK"
+  },
+  "08GA022": {
+    "band": [
+      3.55,
+      3.97,
+      4.26
+    ],
+    "band_width": 0.71,
+    "intra_day_swing": 0.497,
+    "median": 3.85,
+    "month_max": 5.22,
+    "month_min": 2.899,
+    "note": "band sits inside a normally-varying gauge",
+    "p10": 3.347,
+    "p90": 4.372,
     "quality": "OK"
   },
   "08GA043": {
@@ -38,7 +54,7 @@
       1.68
     ],
     "band_width": 0.55,
-    "intra_day_swing": 0.108,
+    "intra_day_swing": 0.106,
     "median": 1.244,
     "month_max": 2.364,
     "month_min": 1.014,
@@ -54,13 +70,45 @@
       2.49
     ],
     "band_width": 0.78,
-    "intra_day_swing": 0.198,
+    "intra_day_swing": 0.193,
     "median": 1.894,
     "month_max": 2.891,
     "month_min": 1.272,
     "note": "band sits inside a normally-varying gauge",
     "p10": 1.536,
     "p90": 2.597,
+    "quality": "OK"
+  },
+  "08HA011": {
+    "band": [
+      0.2,
+      0.25,
+      0.35
+    ],
+    "band_width": 0.15,
+    "intra_day_swing": 0.027,
+    "median": 0.245,
+    "month_max": 0.582,
+    "month_min": 0.153,
+    "note": "band sits inside a normally-varying gauge",
+    "p10": 0.17,
+    "p90": 0.4,
+    "quality": "OK"
+  },
+  "08MF005": {
+    "band": [
+      4330.0,
+      5610.0,
+      7160.0
+    ],
+    "band_width": 2830.0,
+    "intra_day_swing": 131.667,
+    "median": 5210.0,
+    "month_max": 11100.0,
+    "month_min": 2240.0,
+    "note": "band sits inside a normally-varying gauge",
+    "p10": 3710.0,
+    "p90": 7740.0,
     "quality": "OK"
   },
   "08MF062": {
@@ -128,12 +176,8 @@
     "quality": "OK"
   },
   "08MH002": {
-    "band": [
-      7.66,
-      7.71,
-      7.78
-    ],
-    "band_width": 0.12,
+    "band": null,
+    "band_width": null,
     "intra_day_swing": 0.06,
     "median": 7.698,
     "month_max": 8.113,
@@ -166,7 +210,7 @@
       0.92
     ],
     "band_width": 0.22,
-    "intra_day_swing": 0.05,
+    "intra_day_swing": 0.053,
     "median": 0.786,
     "month_max": 1.942,
     "month_min": 0.467,
@@ -214,7 +258,7 @@
       3.3
     ],
     "band_width": 0.6,
-    "intra_day_swing": 0.26,
+    "intra_day_swing": 0.252,
     "median": 2.919,
     "month_max": 3.772,
     "month_min": 2.331,
@@ -230,7 +274,7 @@
       0.6
     ],
     "band_width": 0.07,
-    "intra_day_swing": 0.054,
+    "intra_day_swing": 0.053,
     "median": 0.562,
     "month_max": 1.284,
     "month_min": 0.503,
