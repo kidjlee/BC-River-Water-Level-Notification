@@ -71,12 +71,25 @@ def _gauge(a: Assessment) -> str:
             f'<div class="glabels"><span>low</span><span>good</span><span>high</span><span>blown</span></div>')
 
 
-def _history_chart(a: Assessment, series: list) -> str:
-    """Emit raw daily data + a 7d/30d/1yr toggle; JS draws & handles scrubbing."""
+def _history_chart(a: Assessment, series: list, data: StationData | None = None) -> str:
+    """Emit raw daily data + a 7d/30d/1yr toggle; JS draws & handles scrubbing.
+
+    Bridges ECCC's daily-mean lag (finalized ~weeks late) with the live
+    real-time readings, so the recent 7d/30d windows show current days.
+    """
     pts = [[d, round(v, 3)] for d, v in (series or []) if v is not None]
+    last_daily = pts[-1][0] if pts else "0000-00-00"
+    # append recent days derived from the live feed (daily mean), after the daily series
+    if data is not None:
+        buckets: dict[str, list] = {}
+        for ts, v in data.series(a.metric):
+            buckets.setdefault(ts.date().isoformat(), []).append(v)
+        for d in sorted(buckets):
+            if d > last_daily:
+                pts.append([d, round(sum(buckets[d]) / len(buckets[d]), 3)])
     today = datetime.now(timezone.utc).date().isoformat()
     if a.value is not None and (not pts or pts[-1][0] != today):
-        pts = pts + [[today, a.value]]
+        pts = pts + [[today, round(a.value, 3)]]
     if len(pts) < 5:
         return '<div class="chart-empty">history is still building…</div>'
     return (f'<div class="chartwrap" data-gl="{a.good_low}" data-gh="{a.good_high}" '
@@ -95,7 +108,7 @@ def _tags(a: Assessment) -> str:
     return f'<div class="tags">{off}{sp}</div>' if (sp or off) else ""
 
 
-def _card(a: Assessment, now: datetime, actuals: dict | None) -> str:
+def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData | None = None) -> str:
     color = _STATUS.get(a.verdict, "#8a94a6")
     arrow = {"rising": "↑", "falling": "↓", "steady": "→", "unknown": "·"}[a.trend]
     val = _fmt(a.value, a.unit) if a.value is not None else "—"
@@ -105,6 +118,7 @@ def _card(a: Assessment, now: datetime, actuals: dict | None) -> str:
             f'Treat with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
     series = (actuals or {}).get("series", [])
+    chart = _history_chart(a, series, data)
     dim = "" if a.in_season else " dim"
     return f"""
     <article class="card{dim}" style="--accent:{color}">
@@ -112,7 +126,7 @@ def _card(a: Assessment, now: datetime, actuals: dict | None) -> str:
       <div class="topline"><span class="num">{val}</span><span class="trend">{arrow} {a.trend}</span>
         <span class="asof">{html.escape(rel)}</span></div>
       {_gauge(a)}{basis}
-      {_history_chart(a, series)}
+      {chart}
       <p class="headline">{html.escape(a.headline)}</p>
       {warn}
       <p class="outlook">{html.escape(a.outlook)}</p>
@@ -220,14 +234,14 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
     assessments = [a for a, _, _ in results]
 
     regions: dict[str, list] = {}
-    for a, _, _ in results:
-        regions.setdefault(a.region or "Other", []).append(a)
+    for a, d, _ in results:
+        regions.setdefault(a.region or "Other", []).append((a, d))
     ordered = sorted(regions.items(),
-                     key=lambda kv: (min(rank.get(a.verdict, 99) for a in kv[1]), kv[0]))
+                     key=lambda kv: (min(rank.get(a.verdict, 99) for a, _ in kv[1]), kv[0]))
     sections = []
     for region, items in ordered:
-        items.sort(key=lambda a: rank.get(a.verdict, 99))
-        cards = "\n".join(_card(a, now, actuals.get(a.station)) for a in items)
+        items.sort(key=lambda t: rank.get(t[0].verdict, 99))
+        cards = "\n".join(_card(a, now, actuals.get(a.station), d) for a, d in items)
         sections.append(f'<section><h2 class="region">{html.escape(region)}</h2><div class="grid">{cards}</div></section>')
 
     return f"""<!doctype html>
