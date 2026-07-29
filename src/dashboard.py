@@ -192,8 +192,16 @@ function draw(wrap,range){
   s+='<text x="4" y="'+(Y(hi)+7).toFixed(0)+'" class="ax">'+sh(hi)+'</text>';
   s+='<text x="4" y="'+(PT+ih/2).toFixed(0)+'" class="ax">'+sh((hi+lo)/2)+'</text>';
   s+='<text x="4" y="'+Y(lo).toFixed(0)+'" class="ax">'+sh(lo)+'</text>';
-  var poly=''; for(var j=0;j<n;j++){poly+=X(j).toFixed(1)+','+Y(pts[j][1]).toFixed(1)+' ';}
-  s+='<polyline fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linejoin="round" points="'+poly+'"/>';
+  var gapMax=range>60?9:4, seg=[], segs=[];  // break the line across real data gaps
+  for(var j=0;j<n;j++){
+    if(j>0){var gd=(new Date(pts[j][0]+'T00:00:00Z')-new Date(pts[j-1][0]+'T00:00:00Z'))/86400000; if(gd>gapMax){segs.push(seg);seg=[];}}
+    seg.push(X(j).toFixed(1)+','+Y(pts[j][1]).toFixed(1));
+  }
+  segs.push(seg);
+  segs.forEach(function(sg){
+    if(sg.length>1) s+='<polyline fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linejoin="round" points="'+sg.join(' ')+'"/>';
+    else if(sg.length===1){var xy=sg[0].split(','); s+='<circle cx="'+xy[0]+'" cy="'+xy[1]+'" r="1.8" fill="#2563eb"/>';}
+  });
   s+='<line class="cross" y1="'+PT+'" y2="'+(H-PB)+'" stroke="var(--fg)" stroke-width="1.5" opacity="0"/>';
   s+='<circle class="cdot" r="5" fill="#2563eb" stroke="var(--card)" stroke-width="2" opacity="0"/>';
   s+='<rect class="hit" x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent"/>';

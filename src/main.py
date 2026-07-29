@@ -86,7 +86,28 @@ def main(argv=None) -> int:
         generated += " (DEMO — synthetic data)"
 
     # 1-year daily actuals power each river's interactive history chart.
+    # We MERGE each run's live readings (daily-averaged) into the stored record,
+    # so the recent stretch stays continuous and permanent — no longer at the
+    # mercy of ECCC's ~weeks-late daily-mean finalization or the 30-day
+    # real-time retention. The seasonal backfill seeds the older year.
     actuals = _load_json(ACTUALS_FILE)
+    for a, data, _ in results:
+        buckets: dict[str, list] = {}
+        for ts, v in data.series(a.metric):
+            buckets.setdefault(ts.date().isoformat(), []).append(v)
+        if not buckets and not (actuals.get(a.station, {}).get("series")):
+            continue
+        entry = actuals.get(a.station) or {"metric": a.metric, "unit": a.unit, "series": []}
+        merged = {d: v for d, v in entry.get("series", [])}
+        for d, vs in buckets.items():
+            merged[d] = round(sum(vs) / len(vs), 3)   # live daily mean wins for recent days
+        entry["series"] = sorted(([d, v] for d, v in merged.items()), key=lambda x: x[0])[-366:]
+        entry["metric"], entry["unit"] = a.metric, a.unit
+        actuals[a.station] = entry
+    if not args.demo:
+        ACTUALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        ACTUALS_FILE.write_text(json.dumps(actuals, separators=(",", ":"), sort_keys=True))
+
     DASHBOARD_OUT.parent.mkdir(parents=True, exist_ok=True)
     DASHBOARD_OUT.write_text(dashboard.render(results, generated, actuals))
     print(f"[dashboard] wrote {DASHBOARD_OUT}")
