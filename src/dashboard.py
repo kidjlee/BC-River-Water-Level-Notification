@@ -108,6 +108,27 @@ def _tags(a: Assessment) -> str:
     return f'<div class="tags">{off}{sp}</div>' if (sp or off) else ""
 
 
+def _readings(a: Assessment, now: datetime) -> str:
+    """Both raw gauge readings, laid out the way Water Office reports them.
+
+    The verdict rides on one metric, but anglers cross-check the station page,
+    which always lists level and discharge together. A station that publishes
+    only one of the two shows "—" rather than being silently dropped.
+    """
+    lvl = f"{a.level_m:.3f} m" if a.level_m is not None else "—"
+    dis = f"{a.discharge_cms:,.3f} m³/s" if a.discharge_cms is not None else "—"
+    stamp = a.level_at or a.discharge_at
+    when = f'<div class="rwhen">as of {html.escape(_rel_time(stamp, now))}</div>' if stamp else ""
+    return (
+        '<div class="readings">'
+        f'<div class="r"><span class="rk">Most Recent Water Level</span>'
+        f'<span class="rv">{lvl}</span></div>'
+        f'<div class="r"><span class="rk">Most Recent Discharge</span>'
+        f'<span class="rv">{dis}</span></div>'
+        f"</div>{when}"
+    )
+
+
 def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData | None = None) -> str:
     color = _STATUS.get(a.verdict, "#8a94a6")
     arrow = {"rising": "↑", "falling": "↓", "steady": "→", "unknown": "·"}[a.trend]
@@ -117,6 +138,7 @@ def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData 
     warn = (f'<p class="warn">⚠️ {a.gauge_quality} gauge — {html.escape(a.gauge_note)}. '
             f'Treat with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
+    readings = _readings(a, now)
     series = (actuals or {}).get("series", [])
     chart = _history_chart(a, series, data)
     dim = "" if a.in_season else " dim"
@@ -126,6 +148,7 @@ def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData 
       <div class="topline"><span class="num">{val}</span><span class="trend">{arrow} {a.trend}</span>
         <span class="asof">{html.escape(rel)}</span></div>
       {_gauge(a)}{basis}
+      {readings}
       {chart}
       <p class="headline">{html.escape(a.headline)}</p>
       {warn}
@@ -308,6 +331,14 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }}
   .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin:0 0 8px; }}
   .gbasis {{ font-size:.6rem; color:var(--muted); font-style:italic; margin:-4px 0 8px; }}
+  .readings {{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0 2px; }}
+  .readings .r {{ background:rgba(255,255,255,.04); border:1px solid var(--line);
+                  border-radius:8px; padding:6px 8px; min-width:0; }}
+  .rk {{ display:block; font-size:.58rem; letter-spacing:.02em; color:var(--muted);
+         text-transform:uppercase; }}
+  .rv {{ display:block; font-size:.95rem; font-weight:650; font-variant-numeric:tabular-nums;
+         margin-top:1px; }}
+  .rwhen {{ font-size:.58rem; color:var(--muted); margin:3px 0 6px; }}
   .chartwrap {{ position:relative; }}
   .rangebtns {{ display:flex; gap:5px; justify-content:flex-end; margin:2px 0 2px; }}
   .rangebtns button {{ font:inherit; font-size:.68rem; font-weight:600; color:var(--muted); background:var(--bg);

@@ -102,6 +102,12 @@ class Assessment:
     threshold_basis: str = ""   # e.g. "Jul normal" when month-calibrated zones are used
     gauge_quality: str = "OK"   # OK / TIDAL / FLAT / SPARSE (from diagnose.py)
     gauge_note: str = ""
+    # Both raw readings, whichever metric drives the verdict. Anglers cross-check
+    # against Water Office, which always shows level and discharge side by side.
+    level_m: float | None = None
+    level_at: str | None = None
+    discharge_cms: float | None = None
+    discharge_at: str | None = None
     track_record: str = ""      # forecast accuracy from history.evaluate()
 
     @property
@@ -224,12 +230,18 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
     month = now.astimezone(BC_TZ).month
     season = river.get("season_months") or list(range(1, 13))
     gl, gh, bl, basis = effective_thresholds(river, month)
+    lvl = data.latest_metric("level")
+    dis = data.latest_metric("flow")
     base = dict(river=name, station=station, metric=metric, unit=unit,
                 good_low=gl, good_high=gh, blown_out=bl,
                 region=river.get("region", ""), species=river.get("species", []),
                 in_season=(month in season), threshold_basis=basis,
                 gauge_quality=_DIAG.get(station, {}).get("quality", "OK"),
-                gauge_note=_DIAG.get(station, {}).get("note", ""))
+                gauge_note=_DIAG.get(station, {}).get("note", ""),
+                level_m=(round(lvl[1], 3) if lvl else None),
+                level_at=(lvl[0].isoformat() if lvl else None),
+                discharge_cms=(round(dis[1], 3) if dis else None),
+                discharge_at=(dis[0].isoformat() if dis else None))
 
     if latest is None:
         return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,

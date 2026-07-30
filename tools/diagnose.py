@@ -67,9 +67,16 @@ def diagnose(river: dict, month: int, monthly: dict) -> dict:
     quality, note = "OK", "band sits inside a normally-varying gauge"
     if band_w is not None and rng > 0 and band_w / rng < 0.03:
         quality, note = "FLAT", "almost no seasonal variation (regulated/stale?)"
-    if swing is not None and band_w and band_w > 0 and swing / band_w > 0.8:
+    # Tide is dominance, so measure the swing against the month's whole
+    # historical range -- not against the calibrated band. The band is narrow by
+    # construction on a stable river, so band-relative swing called every steady
+    # gauge tidal: it flagged Coquitlam at Port Coquitlam, which actually moves
+    # ~2 cm a day. The absolute floor keeps cm-scale noise from tripping it.
+    floor = 0.20 if metric != "flow" else 50.0
+    if swing is not None and swing >= floor and rng > 0 and swing / rng > 0.5:
         quality = "TIDAL"
-        note = f"intra-day swing {swing:.2f} rivals the whole {band_w:.2f} band (tidal)"
+        note = (f"intra-day swing {swing:.2f} is over half the month's whole "
+                f"{rng:.2f} range (tidal)")
     return {
         "quality": quality, "note": note,
         "month_min": round(lo, 3), "p10": round(p10, 3), "median": round(p50, 3),
