@@ -1,0 +1,22 @@
+name: Probe ECCC coverage
+
+# Manual helper: show where each ECCC source's data actually starts/ends, so we
+# can tell a real data hole from a fetch bug.
+on:
+  workflow_dispatch:
+    inputs:
+      stations:
+        description: "Space-separated station IDs (blank = all)"
+        default: ""
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Probe
+        run: python tools/probe_sources.py ${{ inputs.stations }}
