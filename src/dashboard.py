@@ -11,7 +11,7 @@ import html
 import json
 from datetime import datetime, timezone
 
-from .analyze import Assessment, VERDICT_ORDER
+from .analyze import Assessment, BC_TZ, VERDICT_ORDER
 from .sources import StationData
 from .weather import RainOutlook
 
@@ -83,11 +83,11 @@ def _history_chart(a: Assessment, series: list, data: StationData | None = None)
     if data is not None:
         buckets: dict[str, list] = {}
         for ts, v in data.series(a.metric):
-            buckets.setdefault(ts.date().isoformat(), []).append(v)
+            buckets.setdefault(ts.astimezone(BC_TZ).date().isoformat(), []).append(v)
         for d in sorted(buckets):
             if d > last_daily:
                 pts.append([d, round(sum(buckets[d]) / len(buckets[d]), 3)])
-    today = datetime.now(timezone.utc).date().isoformat()
+    today = datetime.now(timezone.utc).astimezone(BC_TZ).date().isoformat()
     if a.value is not None and (not pts or pts[-1][0] != today):
         pts = pts + [[today, round(a.value, 3)]]
     if len(pts) < 5:

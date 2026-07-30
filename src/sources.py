@@ -89,7 +89,46 @@ def _reject_outliers(readings: list["Reading"], attr: str) -> None:
             setattr(r, attr, None)
 
 
-def fetch_station(station: str, prov: str = "BC", hours_back: int = 720, timeout: int = 60) -> StationData:
+def fetch_station(station: str, prov: str = "BC", hours_back: int = 120, timeout: int = 60) -> StationData:
+    """Recent real-time readings, from Water Office with ECCC as the fallback.
+
+    Water Office is the page anglers actually check, so it's the reference the
+    dashboard has to agree with; ECCC's OGC feed only stands in if that service
+    is unreachable, rather than being a second opinion nobody asked for.
+    """
+    try:
+        data = _fetch_station_wateroffice(station, hours_back, timeout)
+        if data.readings:
+            return data
+    except Exception:
+        pass                      # fall through to ECCC
+    return _fetch_station_ogc(station, hours_back, timeout)
+
+
+def _fetch_station_wateroffice(station: str, hours_back: int, timeout: int) -> StationData:
+    """Build StationData from Water Office's level and discharge series."""
+    from .wateroffice import fetch_series      # local: keeps the OGC path importable alone
+
+    end = datetime.now(timezone.utc).date()
+    start = end - timedelta(days=max(1, hours_back // 24 + 1))
+    merged: dict[datetime, list] = {}
+    for metric, idx in (("level", 0), ("flow", 1)):
+        for ts, value in fetch_series(station, metric, start, end, timeout=timeout):
+            merged.setdefault(ts, [None, None])[idx] = value
+
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
+    data = StationData(station=station)
+    for ts in sorted(merged):
+        if ts < cutoff:
+            continue
+        level, flow = merged[ts]
+        data.readings.append(Reading(timestamp=ts, level_m=level, discharge_cms=flow))
+    _reject_outliers(data.readings, "level_m")
+    _reject_outliers(data.readings, "discharge_cms")
+    return data
+
+
+def _fetch_station_ogc(station: str, hours_back: int = 120, timeout: int = 60) -> StationData:
     """Fetch recent real-time readings for one station via the OGC API."""
     start = (datetime.now(timezone.utc) - timedelta(hours=hours_back)).strftime("%Y-%m-%dT%H:%M:%SZ")
     params = {

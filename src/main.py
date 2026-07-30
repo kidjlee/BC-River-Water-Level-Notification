@@ -20,6 +20,7 @@ from pathlib import Path
 import yaml
 
 from . import analyze, dashboard, notify, state
+from .analyze import BC_TZ
 from .sources import StationData, fetch_station
 from .weather import RainOutlook, fetch_rain
 
@@ -94,7 +95,7 @@ def main(argv=None) -> int:
     for a, data, _ in results:
         buckets: dict[str, list] = {}
         for ts, v in data.series(a.metric):
-            buckets.setdefault(ts.date().isoformat(), []).append(v)
+            buckets.setdefault(ts.astimezone(BC_TZ).date().isoformat(), []).append(v)
         if not buckets and not (actuals.get(a.station, {}).get("series")):
             continue
         entry = actuals.get(a.station) or {"metric": a.metric, "unit": a.unit, "series": []}
@@ -104,7 +105,8 @@ def main(argv=None) -> int:
         # Trim by calendar date, not record count: counting records lets a
         # stale run of 2023 days pad the series to 366 and read as full
         # coverage while the last year is mostly hole.
-        cutoff = (datetime.now(timezone.utc).date() - timedelta(days=365)).isoformat()
+        cutoff = (datetime.now(timezone.utc).astimezone(BC_TZ).date()
+                  - timedelta(days=365)).isoformat()
         entry["series"] = sorted(
             ([d, v] for d, v in merged.items() if d >= cutoff), key=lambda x: x[0]
         )

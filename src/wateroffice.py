@@ -20,12 +20,57 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+from zoneinfo import ZoneInfo
 
 import requests
 
+BC_TZ = ZoneInfo("America/Vancouver")
 URL = "https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline"
 PARAM = {"level": 46, "flow": 47}
 UA = {"User-Agent": "bc-river-water-level-notifier/1.0"}
+
+
+def fetch_series(
+    station: str,
+    metric: str,
+    start: dt.date,
+    end: dt.date,
+    timeout: int = 180,
+) -> list[tuple[dt.datetime, float]]:
+    """[(UTC datetime, value)] of provisional readings in [start, end].
+
+    Stamps are UTC in the CSV even though the Water Office report page renders
+    them in Pacific — callers that bucket by day must convert first.
+    """
+    resp = requests.get(
+        URL,
+        params={
+            "stations[]": station,
+            "parameters[]": PARAM.get(metric, 46),
+            "start_date": f"{start.isoformat()} 00:00:00",
+            "end_date": f"{end.isoformat()} 23:59:59",
+        },
+        headers=UA,
+        timeout=timeout,
+        stream=True,
+    )
+    resp.raise_for_status()
+    resp.encoding = "utf-8-sig"
+
+    out: list[tuple[dt.datetime, float]] = []
+    for row in csv.reader(resp.iter_lines(decode_unicode=True)):
+        if len(row) < 4:
+            continue
+        stamp, value_s = row[1].strip(), row[3].strip()
+        if not value_s or not stamp[:4].isdigit():
+            continue
+        try:
+            out.append((dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")),
+                        float(value_s)))
+        except ValueError:
+            continue
+    out.sort(key=lambda p: p[0])
+    return out
 
 
 def fetch_daily_means(
@@ -64,7 +109,13 @@ def fetch_daily_means(
             value = float(value_s)
         except ValueError:
             continue
-        day = date_s[:10]
+        # Stamps are UTC; a day has to be a Pacific day or the label sits on a
+        # 17:00-17:00 window and won't match the Water Office table.
+        try:
+            day = (dt.datetime.fromisoformat(date_s.replace("Z", "+00:00"))
+                   .astimezone(BC_TZ).date().isoformat())
+        except ValueError:
+            continue
         sums[day] = sums.get(day, 0.0) + value
         counts[day] = counts.get(day, 0) + 1
 
