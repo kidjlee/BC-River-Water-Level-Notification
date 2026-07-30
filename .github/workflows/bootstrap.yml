@@ -10,6 +10,9 @@ name: Bootstrap Region 2 rivers
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
