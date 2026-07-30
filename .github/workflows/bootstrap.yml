@@ -1,13 +1,14 @@
 name: Bootstrap Region 2 rivers
 
-# One-time (manual) job: add DFO Region 2 rivers that have a live gauge,
-# calibrate their thresholds from history, train their models, rebuild the
-# dashboard, and commit. Run from the Actions tab (workflow_dispatch).
+# Full refresh: discover gauges, rebuild the year of history, recalibrate
+# thresholds, re-grade gauges, rebuild the dashboard.
+#
+# Ordering matters: the backfill runs BEFORE calibration so that if ECCC's
+# archive is down, calibration can still fall back to the freshly rebuilt year
+# of Water Office data rather than leaving a station on placeholder thresholds
+# from a different gauge.
 on:
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   bootstrap:
@@ -22,20 +23,23 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
 
+      # Every network step tolerates failure: an ECCC outage should degrade
+      # this run, not abort it before the parts that don't need ECCC.
       - name: Add Region 2 rivers with a live gauge
-        run: python tools/add_region2.py
+        run: python tools/add_region2.py || true
+
+      - name: Backfill 1-year daily actuals (history charts)
+        run: python tools/backfill_actuals.py || true
 
       - name: Calibrate flat thresholds for new (unverified) rivers
-        run: python tools/calibrate_thresholds.py --write --unverified-only
+        run: python tools/calibrate_thresholds.py --write --unverified-only || true
 
       - name: Calibrate per-month thresholds for all rivers
-        run: python tools/calibrate_thresholds.py --monthly
+        run: python tools/calibrate_thresholds.py --monthly || true
 
       - name: Diagnose gauge quality (flag tidal/flat gauges)
         run: python tools/diagnose.py || true
 
-      - name: Backfill 1-year daily actuals (history page)
-        run: python tools/backfill_actuals.py || true
       - name: Audit history coverage
         run: python tools/check_coverage.py || true
 
@@ -48,13 +52,13 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json docs/index.html state/state.json
           if git diff --cached --quiet; then
-            echo "Nothing to commit."; exit 0
+            echo "nothing to commit"; exit 0
           fi
           git commit -m "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]"
           for i in 1 2 3 4 5; do
             git push && exit 0
-            echo "push rejected (attempt $i) — rebasing and retrying"
-            git pull --rebase -X ours origin main || true
+            echo "push failed, rebasing and retrying ($i)"
+            git pull --rebase origin main || git rebase --abort
             sleep $((i * 3))
           done
-          echo "push failed after retries"; exit 1
+          exit 1

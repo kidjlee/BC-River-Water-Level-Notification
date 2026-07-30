@@ -27,11 +27,42 @@ from eccc_history import fetch_daily  # noqa: E402
 
 CONFIG = Path("config/rivers.yaml")
 MONTHLY_OUT = Path("config/thresholds_monthly.json")
+ACTUALS = Path("data/actuals_daily.json")
 MIN_MONTH_SAMPLES = 25   # need this many days-in-month across history to trust it
 
 
+def _from_actuals(station: str):
+    """(dates, values) from the backfilled year, for when ECCC is unreachable."""
+    try:
+        series = json.loads(ACTUALS.read_text()).get(station, {}).get("series", [])
+    except (OSError, json.JSONDecodeError):
+        return [], []
+    pairs = [(d, v) for d, v in series if v is not None]
+    return [d for d, _ in pairs], [v for _, v in pairs]
+
+
+def history(river: dict):
+    """Daily history for a station: decades from ECCC, else the backfilled year.
+
+    ECCC's archive is the better basis — decades rather than one year — but it
+    goes down, and a station left on placeholder thresholds reports a verdict
+    against numbers from a different gauge. One year of Water Office daily
+    means is a narrower but honest fallback, and it's the same data the chart
+    is drawn from.
+    """
+    station = river["station"]
+    try:
+        dates, values = fetch_daily(station, river.get("metric", "level"))
+        if values:
+            return dates, values, "eccc"
+    except Exception as e:
+        print(f"  [{station}] ECCC archive unavailable ({type(e).__name__}); using backfilled year")
+    dates, values = _from_actuals(station)
+    return dates, values, "actuals"
+
+
 def suggest(river, low_q, high_q, blown_q):
-    dates, values = fetch_daily(river["station"], river.get("metric", "level"))
+    dates, values, source = history(river)
     if not values:
         return None
     months = set(river.get("season_months", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]))
@@ -40,12 +71,13 @@ def suggest(river, low_q, high_q, blown_q):
     arr = np.asarray(sample)
     gl, gh, bl = np.percentile(arr, [low_q, high_q, blown_q])
     rnd = (lambda x: round(float(x), 2)) if river.get("metric") != "flow" else (lambda x: round(float(x), -1))
-    return dict(good_low=rnd(gl), good_high=rnd(gh), blown_out=rnd(bl), n=len(sample), n_season=len(seasonal))
+    return dict(good_low=rnd(gl), good_high=rnd(gh), blown_out=rnd(bl), n=len(sample),
+                n_season=len(seasonal), source=source)
 
 
 def monthly_table(river, low_q, high_q, blown_q) -> dict[str, list[float]]:
     """Percentile thresholds per calendar month, from that month's own history."""
-    dates, values = fetch_daily(river["station"], river.get("metric", "level"))
+    dates, values, _ = history(river)
     rnd = (lambda x: round(float(x), 2)) if river.get("metric") != "flow" else (lambda x: round(float(x), -1))
     by_month: dict[int, list[float]] = {}
     for d, v in zip(dates, values):
