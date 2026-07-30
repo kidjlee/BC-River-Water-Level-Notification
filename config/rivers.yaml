@@ -108,7 +108,7 @@ rivers:
   - name: "Capilano River"
     station: "08GA031"          # CAPILANO RIVER BELOW CLEVELAND DAM (the fished reach)
     notify: true
-    verified: false
+    verified: true
     lat: 49.35132
     lon: -123.11417
     metric: level
@@ -116,15 +116,15 @@ rivers:
     fed_by: rain
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "steelhead"]
-    good_low: 0.89
-    good_high: 1.24
-    blown_out: 1.81
+    good_low: 0.53
+    good_high: 1.1
+    blown_out: 1.56
     notes: "Below Cleveland Dam, the reach anglers fish; flashy after rain. Thresholds pending recalibration on this gauge."
 
   - name: "Coquitlam River"
     station: "08MH002"          # COQUITLAM RIVER AT PORT COQUITLAM (the fished reach)
     notify: true
-    verified: false
+    verified: true
     lat: 49.24966
     lon: -122.76512
     metric: level
@@ -132,9 +132,9 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["chum", "coho", "chinook"]
-    good_low: 7.70
-    good_high: 7.85
-    blown_out: 8.20
+    good_low: 7.93
+    good_high: 8.05
+    blown_out: 8.38
     notes: "The fished reach at Port Coquitlam. Briefly moved to 08MH141 (above the reservoir) on a bad TIDAL grade; this gauge moves ~2 cm/day, not with the tide. Thresholds pending calibration."
 
   - name: "Alouette River"
