@@ -192,7 +192,7 @@ function draw(wrap,range){
   s+='<text x="4" y="'+(Y(hi)+7).toFixed(0)+'" class="ax">'+sh(hi)+'</text>';
   s+='<text x="4" y="'+(PT+ih/2).toFixed(0)+'" class="ax">'+sh((hi+lo)/2)+'</text>';
   s+='<text x="4" y="'+Y(lo).toFixed(0)+'" class="ax">'+sh(lo)+'</text>';
-  var gapMax=range>60?9:4, seg=[], segs=[];  // break the line across real data gaps
+  var gapMax=range>60?3:1.5, seg=[], segs=[];  // break the line across real data gaps
   for(var j=0;j<n;j++){
     if(j>0){var gd=(new Date(pts[j][0]+'T00:00:00Z')-new Date(pts[j-1][0]+'T00:00:00Z'))/86400000; if(gd>gapMax){segs.push(seg);seg=[];}}
     seg.push(X(j).toFixed(1)+','+Y(pts[j][1]).toFixed(1));

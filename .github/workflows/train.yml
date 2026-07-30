@@ -40,6 +40,8 @@ jobs:
 
       - name: Backfill 1-year daily actuals
         run: python tools/backfill_actuals.py || true
+      - name: Audit history coverage
+        run: python tools/check_coverage.py || true
 
       - name: Commit models + thresholds
         run: |

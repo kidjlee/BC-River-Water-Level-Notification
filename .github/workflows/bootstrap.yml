@@ -36,6 +36,8 @@ jobs:
 
       - name: Backfill 1-year daily actuals (history page)
         run: python tools/backfill_actuals.py || true
+      - name: Audit history coverage
+        run: python tools/check_coverage.py || true
 
       - name: Build dashboard
         run: python -m src.main --no-notify

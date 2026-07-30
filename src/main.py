@@ -14,7 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
@@ -101,7 +101,13 @@ def main(argv=None) -> int:
         merged = {d: v for d, v in entry.get("series", [])}
         for d, vs in buckets.items():
             merged[d] = round(sum(vs) / len(vs), 3)   # live daily mean wins for recent days
-        entry["series"] = sorted(([d, v] for d, v in merged.items()), key=lambda x: x[0])[-366:]
+        # Trim by calendar date, not record count: counting records lets a
+        # stale run of 2023 days pad the series to 366 and read as full
+        # coverage while the last year is mostly hole.
+        cutoff = (datetime.now(timezone.utc).date() - timedelta(days=365)).isoformat()
+        entry["series"] = sorted(
+            ([d, v] for d, v in merged.items() if d >= cutoff), key=lambda x: x[0]
+        )
         entry["metric"], entry["unit"] = a.metric, a.unit
         actuals[a.station] = entry
     if not args.demo:
