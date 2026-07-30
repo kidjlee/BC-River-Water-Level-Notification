@@ -20,3 +20,5 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Probe
         run: python tools/probe_sources.py ${{ inputs.stations }}
+      - name: Gap-fill candidates
+        run: python tools/probe_gapfill.py
