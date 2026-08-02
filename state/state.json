@@ -13,8 +13,8 @@
   "08GA043": "GO",
   "08MF062": "TOO_LOW",
   "08MH155": "BLOWN_OUT",
-  "08MH035": "BLOWN_OUT",
+  "08MH035": "GO",
   "08GA075": "GO",
   "08MH076": "BLOWN_OUT",
-  "08MH029": "GO"
+  "08MH029": "MARGINAL"
 }
