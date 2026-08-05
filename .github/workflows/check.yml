@@ -58,7 +58,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html state/state.json
+          git add docs/index.html state/state.json data/actuals_daily.json
           if git diff --cached --quiet; then
             echo "No changes to commit."; exit 0
           fi
