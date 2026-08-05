@@ -38,6 +38,9 @@ jobs:
       - name: Diagnose gauge quality
         run: python tools/diagnose.py || true
 
+      - name: Refresh DFO regulations
+        run: python tools/fetch_regulations.py || true
+
       - name: Backfill 1-year daily actuals
         run: python tools/backfill_actuals.py || true
       - name: Audit history coverage
@@ -47,7 +50,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json
+          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json config/regulations.json data/actuals_daily.json
           if git diff --cached --quiet; then
             echo "Nothing to commit."; exit 0
           fi

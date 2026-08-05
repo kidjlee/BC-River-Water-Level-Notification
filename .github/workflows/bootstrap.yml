@@ -31,6 +31,9 @@ jobs:
       - name: Add Region 2 rivers with a live gauge
         run: python tools/add_region2.py || true
 
+      - name: Refresh DFO regulations
+        run: python tools/fetch_regulations.py || true
+
       - name: Backfill 1-year daily actuals (history charts)
         run: python tools/backfill_actuals.py || true
 
@@ -53,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json data/actuals_daily.json docs/index.html state/state.json
+          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json config/regulations.json data/actuals_daily.json docs/index.html state/state.json
           if git diff --cached --quiet; then
             echo "nothing to commit"; exit 0
           fi

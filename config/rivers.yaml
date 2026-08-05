@@ -31,6 +31,7 @@ defaults:
 rivers:
   - name: "Vedder / Chilliwack River"
     station: "08MH001"          # Chilliwack R at Vedder Crossing (verified)
+    dfo_waters: "Chilliwack/Vedder River (including Sumas River)"
     notify: true
     verified: true
     lat: 49.09738
@@ -47,6 +48,7 @@ rivers:
 
   - name: "Fraser River at Hope"
     station: "08MF005"          # Fraser R at Hope (verified)
+    dfo_waters: "Fraser River"
     verified: true
     lat: 49.38596
     lon: -121.45424
@@ -77,6 +79,7 @@ rivers:
 
   - name: "Squamish River"
     station: "08GA022"          # Squamish R near Brackendale (verified)
+    dfo_waters: "Squamish River (including Powerhouse Channel)"
     verified: true
     lat: 49.79502
     lon: -123.20316
@@ -107,6 +110,7 @@ rivers:
 
   - name: "Capilano River"
     station: "08GA031"          # CAPILANO RIVER BELOW CLEVELAND DAM (the fished reach)
+    dfo_waters: "Capilano River"
     notify: true
     verified: true
     lat: 49.35132
@@ -123,6 +127,7 @@ rivers:
 
   - name: "Coquitlam River"
     station: "08MH002"          # COQUITLAM RIVER AT PORT COQUITLAM (the fished reach)
+    dfo_waters: "Coquitlam River"
     notify: true
     verified: true
     lat: 49.24966
@@ -139,6 +144,7 @@ rivers:
 
   - name: "Alouette River"
     station: "08MH005"          # ALOUETTE RIVER NEAR HANEY (auto-added, calibrate)
+    dfo_waters: "Alouette River and tributaries"
     verified: true
     lat: 49.239
     lon: -122.57975
@@ -154,6 +160,7 @@ rivers:
 
   - name: "Chehalis River"
     station: "08MG001"          # CHEHALIS RIVER NEAR HARRISON MILLS (auto-added, calibrate)
+    dfo_waters: "Chehalis River"
     verified: true
     lat: 49.30003
     lon: -121.93777
@@ -169,6 +176,7 @@ rivers:
 
   - name: "Harrison River"
     station: "08MG014"          # HARRISON RIVER AT HARRISON MILLS (auto-added, calibrate)
+    dfo_waters: "Harrison River"
     verified: true
     lat: 49.23465
     lon: -121.95931
@@ -184,6 +192,7 @@ rivers:
 
   - name: "Stave River"
     station: "08MH147"          # STAVE RIVER ABOVE STAVE LAKE (auto-added, calibrate)
+    dfo_waters: "Stave River"
     verified: true
     lat: 49.55619
     lon: -122.32307
@@ -199,6 +208,7 @@ rivers:
 
   - name: "Cheakamus River"
     station: "08GA043"          # CHEAKAMUS RIVER NEAR BRACKENDALE (auto-added, calibrate)
+    dfo_waters: "Cheakamus River"
     verified: true
     lat: 49.81603
     lon: -123.15008
@@ -229,6 +239,7 @@ rivers:
 
   - name: "Nicomekl River"
     station: "08MH155"          # NICOMEKL RIVER AT 203 STREET, LANGLEY (auto-added, calibrate)
+    dfo_waters: "Nicomekl River"
     verified: true
     lat: 49.0957
     lon: -122.66009
@@ -259,6 +270,7 @@ rivers:
 
   - name: "Mamquam River"
     station: "08GA075"          # MAMQUAM RIVER ABOVE RING CREEK (auto-added, calibrate)
+    dfo_waters: "Mamquam River"
     verified: true
     lat: 49.72595
     lon: -123.1021
@@ -274,6 +286,7 @@ rivers:
 
   - name: "Kanaka Creek"
     station: "08MH076"          # KANAKA CREEK NEAR WEBSTER CORNERS (auto-added, calibrate)
+    dfo_waters: "Kanaka Creek"
     verified: true
     lat: 49.20709
     lon: -122.53661
@@ -289,6 +302,7 @@ rivers:
 
   - name: "Sumas River"
     station: "08MH029"          # SUMAS RIVER NEAR HUNTINGDON (auto-added, calibrate)
+    dfo_waters: "Chilliwack/Vedder River (including Sumas River)"
     verified: true
     lat: 49.00249
     lon: -122.2323

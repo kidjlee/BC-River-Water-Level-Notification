@@ -11,6 +11,7 @@ import html
 import json
 from datetime import datetime, timezone
 
+from . import regulations as regs
 from .analyze import Assessment, BC_TZ, VERDICT_ORDER
 from .sources import StationData
 from .weather import RainOutlook
@@ -129,7 +130,42 @@ def _readings(a: Assessment, now: datetime) -> str:
     )
 
 
-def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData | None = None) -> str:
+def _rules(a: Assessment, all_regs: dict, today) -> str:
+    """DFO's rules for this river, with today's in force pulled to the top.
+
+    A river with no entry on the Region 2 page renders nothing — plenty of our
+    gauges sit outside that region (Cowichan, Skeena) or simply aren't listed,
+    and inventing a rule for them would be worse than staying quiet.
+    """
+    entries = regs.for_river(all_regs, a.dfo_waters)
+    if not entries:
+        return ""
+    active, rest = regs.split_active(entries, today)
+
+    def row(e, live):
+        shut = regs.is_closure(e)
+        cls = "rule" + (" on" if live else "") + (" shut" if shut and live else "")
+        return (f'<div class="{cls}"><span class="rsp">{html.escape(e["species"])}</span>'
+                f'<span class="rdt">{html.escape(e["dates"])}</span>'
+                f'<span class="rlm">{html.escape(e["limit"])}</span></div>')
+
+    now_html = "".join(row(e, True) for e in active) or \
+        '<div class="rule"><span class="rsp">—</span><span class="rlm">nothing open today</span></div>'
+    later = "".join(row(e, False) for e in rest)
+    later_html = (f'<details class="rmore"><summary>rest of the year '
+                  f'({len(rest)})</summary>{later}</details>') if rest else ""
+
+    areas = [e["area"] for e in entries if e.get("area")]
+    area = ""
+    if areas:
+        seen = list(dict.fromkeys(areas))
+        area = (f'<div class="rarea">Applies to: {html.escape(" / ".join(seen))}</div>')
+    return (f'<div class="rules"><div class="ruleshead">DFO rules — in force today</div>'
+            f'{now_html}{later_html}{area}</div>')
+
+
+def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData | None = None,
+          all_regs: dict | None = None) -> str:
     color = _STATUS.get(a.verdict, "#8a94a6")
     arrow = {"rising": "↑", "falling": "↓", "steady": "→", "unknown": "·"}[a.trend]
     val = _fmt(a.value, a.unit) if a.value is not None else "—"
@@ -139,6 +175,7 @@ def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData 
             f'Treat with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
     readings = _readings(a, now)
+    rules = _rules(a, all_regs or {}, now.astimezone(BC_TZ).date())
     series = (actuals or {}).get("series", [])
     chart = _history_chart(a, series, data)
     dim = "" if a.in_season else " dim"
@@ -154,13 +191,30 @@ def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData 
       {warn}
       <p class="outlook">{html.escape(a.outlook)}</p>
       {best}
+      {rules}
       {_tags(a)}
       <footer><span>{html.escape(a.region)}</span><span>Station {html.escape(a.station)}</span></footer>
     </article>"""
 
 
+def _dfo_general(all_regs: dict) -> str:
+    """Region-wide limits, collapsed. These bind everywhere in Region 2, so they
+    belong once at page level rather than repeated on all eighteen cards."""
+    rules = all_regs.get("general") or []
+    if not rules:
+        return ""
+    items = "".join(f"<li>{html.escape(r)}</li>" for r in rules)
+    src = html.escape(all_regs.get("source", ""))
+    when = html.escape(all_regs.get("date_modified") or "unknown")
+    return (f'<details class="dfo"><summary>Region 2 rules that apply everywhere</summary>'
+            f'<ul>{items}</ul>'
+            f'<div class="src">Source: <a href="{src}">DFO Region 2 notice</a> · '
+            f'page last modified {when}. Always confirm before you fish.</div></details>')
+
+
 def _hero(assessments: list[Assessment]) -> str:
     rank = {v: i for i, v in enumerate(VERDICT_ORDER)}
+    all_regs = regs.load()
     live = [a for a in assessments if a.verdict != "NO_DATA"]
     if not live:
         return '<div class="hero none"><b>No live data right now.</b> Check back shortly.</div>'
@@ -267,6 +321,7 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
     now = datetime.now(timezone.utc)
     actuals = actuals or {}
     rank = {v: i for i, v in enumerate(VERDICT_ORDER)}
+    all_regs = regs.load()
     assessments = [a for a, _, _ in results]
 
     regions: dict[str, list] = {}
@@ -277,7 +332,7 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
     sections = []
     for region, items in ordered:
         items.sort(key=lambda t: rank.get(t[0].verdict, 99))
-        cards = "\n".join(_card(a, now, actuals.get(a.station), d) for a, d in items)
+        cards = "\n".join(_card(a, now, actuals.get(a.station), d, all_regs) for a, d in items)
         sections.append(f'<section><h2 class="region">{html.escape(region)}</h2><div class="grid">{cards}</div></section>')
 
     return f"""<!doctype html>
@@ -339,6 +394,26 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
   .rv {{ display:block; font-size:.95rem; font-weight:650; font-variant-numeric:tabular-nums;
          margin-top:1px; }}
   .rwhen {{ font-size:.58rem; color:var(--muted); margin:3px 0 6px; }}
+  .rules {{ margin:10px 0 2px; border-top:1px solid var(--line); padding-top:8px; }}
+  .ruleshead {{ font-size:.58rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+                color:var(--muted); margin-bottom:5px; }}
+  .rule {{ display:grid; grid-template-columns:auto auto 1fr; gap:6px; align-items:baseline;
+           font-size:.72rem; padding:3px 6px; border-radius:6px; border-left:3px solid transparent; }}
+  .rule.on {{ background:rgba(46,158,91,.12); border-left-color:#2e9e5b; }}
+  .rule.on.shut {{ background:rgba(214,69,69,.12); border-left-color:#d64545; }}
+  .rule .rsp {{ font-weight:700; }}
+  .rule .rdt {{ color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }}
+  .rule .rlm {{ text-align:right; }}
+  .rmore {{ margin-top:4px; }}
+  .rmore summary {{ font-size:.64rem; color:var(--muted); cursor:pointer; padding:2px 6px; }}
+  .rmore .rule {{ opacity:.75; }}
+  .rarea {{ font-size:.58rem; color:var(--muted); margin:5px 0 0; line-height:1.4; }}
+  .dfo {{ background:var(--card); border:1px solid var(--line); border-radius:12px;
+          padding:10px 14px; margin:0 0 16px; font-size:.76rem; }}
+  .dfo summary {{ cursor:pointer; font-weight:700; }}
+  .dfo ul {{ margin:8px 0 4px; padding-left:18px; color:var(--muted); }}
+  .dfo li {{ margin:3px 0; }}
+  .dfo .src {{ font-size:.62rem; color:var(--muted); margin-top:6px; }}
   .chartwrap {{ position:relative; }}
   .rangebtns {{ display:flex; gap:5px; justify-content:flex-end; margin:2px 0 2px; }}
   .rangebtns button {{ font:inherit; font-size:.68rem; font-weight:600; color:var(--muted); background:var(--bg);
@@ -373,6 +448,7 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
   <p class="sub">Live level/flow + 1-year history. Updated {html.escape(generated)}.
      Scrub any chart to read a day. Add to Home Screen for an app. Not a safety guarantee.</p>
   {_hero(assessments)}
+  {_dfo_general(all_regs)}
   {_summary(assessments)}
   {"".join(sections)}
   <p class="foot">Water: Environment and Climate Change Canada (wateroffice.ec.gc.ca). Rain: Open-Meteo.

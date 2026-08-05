@@ -104,6 +104,7 @@ class Assessment:
     gauge_note: str = ""
     # Both raw readings, whichever metric drives the verdict. Anglers cross-check
     # against Water Office, which always shows level and discharge side by side.
+    dfo_waters: str = ""        # key into config/regulations.json
     level_m: float | None = None
     level_at: str | None = None
     discharge_cms: float | None = None
@@ -238,6 +239,7 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
                 in_season=(month in season), threshold_basis=basis,
                 gauge_quality=_DIAG.get(station, {}).get("quality", "OK"),
                 gauge_note=_DIAG.get(station, {}).get("note", ""),
+                dfo_waters=river.get("dfo_waters", ""),
                 level_m=(round(lvl[1], 3) if lvl else None),
                 level_at=(lvl[0].isoformat() if lvl else None),
                 discharge_cms=(round(dis[1], 3) if dis else None),
