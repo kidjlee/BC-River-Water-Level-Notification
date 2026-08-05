@@ -1,0 +1,766 @@
+{
+  "date_modified": "2026-04-01",
+  "fetched": "2026-08-05T00:37:14+00:00",
+  "general": [
+    "You can only fish for salmon in Region 2 during daylight hours.",
+    "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
+    "You must be aware of these possession limits: The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply. The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence. The total annual limit for chinook salmon over 50\u00a0cm is 10 fish from all fresh waters combined.",
+    "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+    "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+    "The total annual limit for chinook salmon over 50\u00a0cm is 10 fish from all fresh waters combined.",
+    "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal systems combined is one (1).",
+    "Salmon measurements are taken from tip of nose to tail fork. You must be aware of these measurements: All retained coho must measure 25\u00a0cm or more. All retained chinook, chum, pink, and sockeye must measure 30\u00a0cm or more. An \"adult chinook\" in Region 2 is defined as being over 50\u00a0cm except in the following areas where an \"adult chinook\" is defined as being over 62\u00a0cm: the Fraser River from Sep 1 to Dec 31 the Chehalis River from Sep 1 to Dec 31 the Chilliwack/Vedder River (including Sumas River) and the Capilano River.",
+    "All retained coho must measure 25\u00a0cm or more.",
+    "All retained chinook, chum, pink, and sockeye must measure 30\u00a0cm or more.",
+    "An \"adult chinook\" in Region 2 is defined as being over 50\u00a0cm except in the following areas where an \"adult chinook\" is defined as being over 62\u00a0cm: the Fraser River from Sep 1 to Dec 31 the Chehalis River from Sep 1 to Dec 31 the Chilliwack/Vedder River (including Sumas River) and the Capilano River.",
+    "the Fraser River from Sep 1 to Dec 31",
+    "the Chehalis River from Sep 1 to Dec 31",
+    "the Chilliwack/Vedder River (including Sumas River) and the Capilano River."
+  ],
+  "source": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html",
+  "waters": {
+    "Alouette River and tributaries": [
+      {
+        "area": "Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park",
+        "dates": "Sep 1 to Nov 30",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          11,
+          30
+        ]
+      },
+      {
+        "area": "Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park",
+        "dates": "Sep 1 to Sep 30",
+        "limit": "Non-retention",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          9,
+          30
+        ]
+      },
+      {
+        "area": "Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park",
+        "dates": "Oct 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          10,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "Downstream of the 216th street bridge to the confluence of the Pitt River",
+        "dates": "Oct 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          10,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "North Alouette and tributaries",
+        "dates": "Sep 1 to Nov 30",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          11,
+          30
+        ]
+      },
+      {
+        "area": "North Alouette and tributaries",
+        "dates": "Sep 1 to Nov 30",
+        "limit": "Non-retention",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          11,
+          30
+        ]
+      }
+    ],
+    "Ashlu Creek": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Bait ban",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 15 to Jan 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          15,
+          1,
+          31
+        ]
+      }
+    ],
+    "Capilano River": [
+      {
+        "area": "including tributaries",
+        "dates": "Apr 1 to Jun 30",
+        "limit": "2 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          4,
+          1,
+          6,
+          30
+        ]
+      },
+      {
+        "area": "including tributaries",
+        "dates": "Jul 1 to Mar 31",
+        "limit": "4 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          7,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "including tributaries",
+        "dates": "Aug 1 to Oct 31",
+        "limit": "Bait ban",
+        "species": "Coho",
+        "window": [
+          8,
+          1,
+          10,
+          31
+        ]
+      },
+      {
+        "area": "including tributaries",
+        "dates": "Aug 1 to Nov 30",
+        "limit": "4 per day, only 2 over 62 cm",
+        "species": "Chinook",
+        "window": [
+          8,
+          1,
+          11,
+          30
+        ]
+      },
+      {
+        "area": "including tributaries",
+        "dates": "Aug 1 to Oct 31",
+        "limit": "Bait ban",
+        "species": "Chinook",
+        "window": [
+          8,
+          1,
+          10,
+          31
+        ]
+      }
+    ],
+    "Chapman Creek": [
+      {
+        "area": "upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge to 100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing.",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 hatchery marked per day, only 2 over 35 cm",
+        "species": "Coho",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge to 100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing.",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 per day, only 1 over 50 cm",
+        "species": "Chinook",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      }
+    ],
+    "Cheakamus River": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Bait ban",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 15 to Jan 31",
+        "limit": "1 per day, hatchery marked only",
+        "species": "Coho",
+        "window": [
+          9,
+          15,
+          1,
+          31
+        ]
+      }
+    ],
+    "Chehalis River": [
+      {
+        "area": "downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that part",
+        "dates": "June 1 to Aug 31",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          6,
+          1,
+          8,
+          31
+        ]
+      },
+      {
+        "area": "downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that part",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 per day, only 1 over 62 cm",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that part",
+        "dates": "June 1 to Aug 31",
+        "limit": "Non-retention",
+        "species": "Coho",
+        "window": [
+          6,
+          1,
+          8,
+          31
+        ]
+      },
+      {
+        "area": "downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that part",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Chilliwack/Vedder River (including Sumas River)": [
+      {
+        "area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "dates": "July 1 to Aug 31",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          7,
+          1,
+          8,
+          31
+        ]
+      },
+      {
+        "area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 per day, only 2 over 62 cm",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "dates": "July 1 to Aug 31",
+        "limit": "Non-retention",
+        "species": "Coho",
+        "window": [
+          7,
+          1,
+          8,
+          31
+        ]
+      },
+      {
+        "area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Coquitlam River": [
+      {
+        "area": "",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "Non-retention",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "De Boville Slough": [
+      {
+        "area": "downstream of the confluence of Cedar Creek and Hyde Creek.",
+        "dates": "Oct 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          10,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Dewdney Slough - See Nicomen Slough": [
+      {
+        "area": "Dewdney Slough - See Nicomen Slough",
+        "dates": "Dewdney Slough - See Nicomen Slough",
+        "limit": "Dewdney Slough - See Nicomen Slough",
+        "species": "Dewdney Slough - See Nicomen Slough",
+        "window": null
+      }
+    ],
+    "Fraser River": [
+      {
+        "area": "mainstem waters upstream of the CPR Bridge at Mission, BC",
+        "dates": "Apr 1 until further notice",
+        "limit": "No fishing for salmon",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          null,
+          null
+        ]
+      }
+    ],
+    "Harrison River": [
+      {
+        "area": "from the outlet of Harrison Lake downstream to the Highway 7 Bridge",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "from the Highway 7 Bridge downstream to the confluence with the Fraser River",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Kanaka Creek": [
+      {
+        "area": "downstream of the 112th Street bridge.",
+        "dates": "Nov 1 to Nov 30",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          11,
+          1,
+          11,
+          30
+        ]
+      }
+    ],
+    "Khartoum Lake": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Single barbless hook",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 per day",
+        "species": "Chinook",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 per day",
+        "species": "Coho",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      }
+    ],
+    "Little Campbell River": [
+      {
+        "area": "downstream of 12th Avenue, including tributaries to that part.",
+        "dates": "Aug 15 to Sep 15",
+        "limit": "1 hatchery marked per day",
+        "species": "Chinook",
+        "window": [
+          8,
+          15,
+          9,
+          15
+        ]
+      },
+      {
+        "area": "downstream of 12th Avenue, including tributaries to that part.",
+        "dates": "Sep 16 to Dec 31",
+        "limit": "Non-retention",
+        "species": "Chinook",
+        "window": [
+          9,
+          16,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "downstream of 12th Avenue, including tributaries to that part.",
+        "dates": "Aug 15 to Sep 15",
+        "limit": "Non-retention",
+        "species": "Coho",
+        "window": [
+          8,
+          15,
+          9,
+          15
+        ]
+      },
+      {
+        "area": "downstream of 12th Avenue, including tributaries to that part.",
+        "dates": "Sep 16 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          16,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "downstream of a line between 2 fishing boundary signs on either side of the Little Campbell River to the pedestrian bridge at the foot of Stayte Road.",
+        "dates": "Aug 15 to Sep 30",
+        "limit": "No fishing for salmon",
+        "species": "All",
+        "window": [
+          8,
+          15,
+          9,
+          30
+        ]
+      }
+    ],
+    "Lois Lake": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Single barbless hook",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 per day",
+        "species": "Chinook",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "4 per day",
+        "species": "Coho",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      }
+    ],
+    "Mamquam River": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Bait ban",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 15 to Jan 31",
+        "limit": "1 per day, hatchery marked only",
+        "species": "Coho",
+        "window": [
+          9,
+          15,
+          1,
+          31
+        ]
+      }
+    ],
+    "Nicomekl River": [
+      {
+        "area": "downstream of 208th Street",
+        "dates": "Sep 1 to Nov 30",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          11,
+          30
+        ]
+      },
+      {
+        "area": "downstream of 208th Street",
+        "dates": "Dec 1 to Dec 31",
+        "limit": "Non-retention",
+        "species": "Chinook",
+        "window": [
+          12,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "downstream of 208th Street",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Nicomen (including Dewdney) Slough": [
+      {
+        "area": "from the confluence of Siddle (Bell's) Creek downstream to the Fraser River",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day, only 2 over 35 cm",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Norrish (Suicide) Creek": [
+      {
+        "area": "",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day, only 2 over 35 cm",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Serpentine River": [
+      {
+        "area": "downstream of 168th Street at Bothwell Park",
+        "dates": "Sep 1 to Nov 30",
+        "limit": "1 per day",
+        "species": "Chinook",
+        "window": [
+          9,
+          1,
+          11,
+          30
+        ]
+      },
+      {
+        "area": "downstream of 168th Street at Bothwell Park",
+        "dates": "Dec 1 to Dec 31",
+        "limit": "Non-retention",
+        "species": "Chinook",
+        "window": [
+          12,
+          1,
+          12,
+          31
+        ]
+      },
+      {
+        "area": "downstream of 168th Street at Bothwell Park",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "1 hatchery marked per day",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Squamish River (including Powerhouse Channel)": [
+      {
+        "area": "",
+        "dates": "Apr 1 to Mar 31",
+        "limit": "Bait ban",
+        "species": "All",
+        "window": [
+          4,
+          1,
+          3,
+          31
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 15 to Jan 31",
+        "limit": "1 per day, hatchery marked only",
+        "species": "Coho",
+        "window": [
+          9,
+          15,
+          1,
+          31
+        ]
+      }
+    ],
+    "Stave River": [
+      {
+        "area": "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion on the east side of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for salmon in that portion on the west side of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
+        "dates": "Sep 1 to Dec 31",
+        "limit": "4 hatchery marked per day, only 2 over 35 cm",
+        "species": "Coho",
+        "window": [
+          9,
+          1,
+          12,
+          31
+        ]
+      }
+    ],
+    "Sumas River - See Chilliwack River": [
+      {
+        "area": "Sumas River - See Chilliwack River",
+        "dates": "Sumas River - See Chilliwack River",
+        "limit": "Sumas River - See Chilliwack River",
+        "species": "Sumas River - See Chilliwack River",
+        "window": null
+      }
+    ],
+    "Vedder River - See Chilliwack River": [
+      {
+        "area": "Vedder River - See Chilliwack River",
+        "dates": "Vedder River - See Chilliwack River",
+        "limit": "Vedder River - See Chilliwack River",
+        "species": "Vedder River - See Chilliwack River",
+        "window": null
+      }
+    ]
+  }
+}
