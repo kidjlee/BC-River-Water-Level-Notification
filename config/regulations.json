@@ -1,6 +1,6 @@
 {
   "date_modified": "2026-04-01",
-  "fetched": "2026-08-05T00:37:14+00:00",
+  "fetched": "2026-08-05T01:05:59+00:00",
   "general": [
     "You can only fish for salmon in Region 2 during daylight hours.",
     "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
@@ -373,15 +373,6 @@
         ]
       }
     ],
-    "Dewdney Slough - See Nicomen Slough": [
-      {
-        "area": "Dewdney Slough - See Nicomen Slough",
-        "dates": "Dewdney Slough - See Nicomen Slough",
-        "limit": "Dewdney Slough - See Nicomen Slough",
-        "species": "Dewdney Slough - See Nicomen Slough",
-        "window": null
-      }
-    ],
     "Fraser River": [
       {
         "area": "mainstem waters upstream of the CPR Bridge at Mission, BC",
@@ -742,24 +733,6 @@
           12,
           31
         ]
-      }
-    ],
-    "Sumas River - See Chilliwack River": [
-      {
-        "area": "Sumas River - See Chilliwack River",
-        "dates": "Sumas River - See Chilliwack River",
-        "limit": "Sumas River - See Chilliwack River",
-        "species": "Sumas River - See Chilliwack River",
-        "window": null
-      }
-    ],
-    "Vedder River - See Chilliwack River": [
-      {
-        "area": "Vedder River - See Chilliwack River",
-        "dates": "Vedder River - See Chilliwack River",
-        "limit": "Vedder River - See Chilliwack River",
-        "species": "Vedder River - See Chilliwack River",
-        "window": null
       }
     ]
   }
