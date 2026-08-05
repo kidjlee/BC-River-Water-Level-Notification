@@ -132,9 +132,11 @@ def scrape(url: str = URL) -> dict:
         water, area, species, dates, limit = (c.strip() for c in cells)
         if water and not water.lower().startswith("waters"):
             current = water
-        if not (species and dates):
-            continue                      # header, or a "See X" cross-reference
-        if species.lower() == "species":
+        if not (species and dates) or species.lower() == "species":
+            continue                      # header row
+        # "Sumas River - See Chilliwack River" is a colspan'd pointer, not a
+        # rule; it arrives with the same text smeared across every column.
+        if species == dates or " - see " in water.lower():
             continue
         waters.setdefault(current, []).append({
             "area": area,
