@@ -54,17 +54,11 @@ jobs:
 
       - name: Commit everything
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/rivers.yaml config/thresholds_monthly.json config/diagnostics.json config/regulations.json data/actuals_daily.json docs/index.html state/state.json
-          if git diff --cached --quiet; then
-            echo "nothing to commit"; exit 0
-          fi
-          git commit -m "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]"
-          for i in 1 2 3 4 5; do
-            git push && exit 0
-            echo "push failed, rebasing and retrying ($i)"
-            git pull --rebase origin main || git rebase --abort
-            sleep $((i * 3))
-          done
-          exit 1
+          tools/commit_generated.sh "Bootstrap Region 2 rivers (add + calibrate + train) [skip ci]" \
+            config/rivers.yaml \
+            config/thresholds_monthly.json \
+            config/diagnostics.json \
+            config/regulations.json \
+            data/actuals_daily.json \
+            docs/index.html \
+            state/state.json

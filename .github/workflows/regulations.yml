@@ -29,14 +29,8 @@ jobs:
         run: python -m src.main --no-notify
       - name: Commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/regulations.json docs/index.html state/state.json data/actuals_daily.json
-          if git diff --cached --quiet; then echo "no change"; exit 0; fi
-          git commit -m "Refresh DFO regulations [skip ci]"
-          for i in 1 2 3 4 5; do
-            git push && exit 0
-            git pull --rebase origin main || git rebase --abort
-            sleep $((i * 3))
-          done
-          exit 1
+          tools/commit_generated.sh "Refresh DFO regulations [skip ci]" \
+            config/regulations.json \
+            docs/index.html \
+            state/state.json \
+            data/actuals_daily.json

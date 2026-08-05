@@ -56,17 +56,7 @@ jobs:
 
       - name: Commit dashboard, state, models
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html state/state.json data/actuals_daily.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit."; exit 0
-          fi
-          git commit -m "Update dashboard [skip ci]"
-          for i in 1 2 3 4 5; do
-            git push && exit 0
-            echo "push rejected (attempt $i) — rebasing on latest and retrying"
-            git pull --rebase -X ours origin "${GITHUB_REF_NAME}" || true
-            sleep $((i * 3))
-          done
-          echo "push failed after retries"; exit 1
+          tools/commit_generated.sh "Update dashboard [skip ci]" \
+            docs/index.html \
+            state/state.json \
+            data/actuals_daily.json
