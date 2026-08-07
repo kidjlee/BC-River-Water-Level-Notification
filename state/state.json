@@ -2,7 +2,7 @@
   "08MH001": "GO",
   "08MF005": "GO",
   "08HA011": "TOO_LOW",
-  "08GA022": "GO",
+  "08GA022": "TOO_LOW",
   "08EF001": "GET_READY",
   "08GA031": "GO",
   "08MH002": "BLOWN_OUT",
@@ -16,5 +16,5 @@
   "08MH035": "TOO_LOW",
   "08GA075": "TOO_LOW",
   "08MH076": "MARGINAL",
-  "08MH029": "GO"
+  "08MH029": "TOO_LOW"
 }
