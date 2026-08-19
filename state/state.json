@@ -4,7 +4,7 @@
   "08HA011": "GET_READY",
   "08GA022": "GO",
   "08EF001": "TOO_LOW",
-  "08GA031": "TOO_LOW",
+  "08GA031": "GO",
   "08MH002": "TOO_LOW",
   "08MH005": "GO",
   "08MG001": "GO",
