@@ -1,6 +1,6 @@
 {
-  "date_modified": "2026-04-01",
-  "fetched": "2026-09-04T17:02:37+00:00",
+  "date_modified": "2026-09-04",
+  "fetched": "2026-09-05T16:13:46+00:00",
   "general": [
     "You can only fish for salmon in Region 2 during daylight hours.",
     "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
@@ -158,12 +158,24 @@
       },
       {
         "area": "including tributaries",
-        "dates": "Aug 1 to Nov 30",
+        "dates": "Aug 1 to Sep 4",
         "limit": "4 per day, only 2 over 62 cm",
         "species": "Chinook",
         "window": [
           8,
           1,
+          9,
+          4
+        ]
+      },
+      {
+        "area": "including tributaries",
+        "dates": "Sep 5 to Nov 30",
+        "limit": "4 per day FN0960",
+        "species": "Chinook",
+        "window": [
+          9,
+          5,
           11,
           30
         ]
@@ -336,12 +348,24 @@
     "Coquitlam River": [
       {
         "area": "",
-        "dates": "Sep 1 to Dec 31",
+        "dates": "Sep 1 to Sep 4",
         "limit": "Non-retention",
         "species": "Chinook",
         "window": [
           9,
           1,
+          9,
+          4
+        ]
+      },
+      {
+        "area": "",
+        "dates": "Sep 5 to Dec 31",
+        "limit": "1 hatchery marked per day FN0961",
+        "species": "Chinook",
+        "window": [
+          9,
+          5,
           12,
           31
         ]
