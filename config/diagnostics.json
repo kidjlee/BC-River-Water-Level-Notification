@@ -6,7 +6,7 @@
       1070.0
     ],
     "band_width": 550.0,
-    "intra_day_swing": 122.667,
+    "intra_day_swing": 74.833,
     "median": 680.0,
     "month_max": 3190.0,
     "month_min": 244.0,
@@ -22,7 +22,7 @@
       3.62
     ],
     "band_width": 0.91,
-    "intra_day_swing": 0.488,
+    "intra_day_swing": 0.319,
     "median": 3.048,
     "month_max": 6.79,
     "month_min": 1.907,
@@ -34,7 +34,7 @@
   "08GA031": {
     "band": null,
     "band_width": null,
-    "intra_day_swing": 0.026,
+    "intra_day_swing": 0.028,
     "median": 0.526,
     "month_max": 0.532,
     "month_min": 0.519,
@@ -50,7 +50,7 @@
       1.07
     ],
     "band_width": 0.18,
-    "intra_day_swing": 0.028,
+    "intra_day_swing": 0.025,
     "median": 0.955,
     "month_max": 2.09,
     "month_min": 0.75,
@@ -66,7 +66,7 @@
       2.13
     ],
     "band_width": 0.78,
-    "intra_day_swing": 0.138,
+    "intra_day_swing": 0.105,
     "median": 1.598,
     "month_max": 3.204,
     "month_min": 1.137,
@@ -82,7 +82,7 @@
       0.39
     ],
     "band_width": 0.18,
-    "intra_day_swing": 0.031,
+    "intra_day_swing": 0.03,
     "median": 0.267,
     "month_max": 1.177,
     "month_min": 0.115,
@@ -98,7 +98,7 @@
       2930.0
     ],
     "band_width": 1110.0,
-    "intra_day_swing": 40.0,
+    "intra_day_swing": 61.667,
     "median": 2200.0,
     "month_max": 6260.0,
     "month_min": 954.0,
@@ -114,7 +114,7 @@
       2.09
     ],
     "band_width": 0.14,
-    "intra_day_swing": 0.005,
+    "intra_day_swing": 0.004,
     "median": 2.02,
     "month_max": 2.301,
     "month_min": 1.893,
@@ -130,7 +130,7 @@
       9.3
     ],
     "band_width": 0.54,
-    "intra_day_swing": 0.008,
+    "intra_day_swing": 0.007,
     "median": 8.832,
     "month_max": 10.654,
     "month_min": 8.685,
@@ -146,7 +146,7 @@
       7.0
     ],
     "band_width": 4.74,
-    "intra_day_swing": 0.042,
+    "intra_day_swing": null,
     "median": 2.643,
     "month_max": 8.449,
     "month_min": 1.454,
@@ -162,7 +162,7 @@
       2.02
     ],
     "band_width": 0.6,
-    "intra_day_swing": 0.02,
+    "intra_day_swing": 0.025,
     "median": 1.757,
     "month_max": 2.428,
     "month_min": 1.173,
@@ -178,7 +178,7 @@
       7.89
     ],
     "band_width": 0.15,
-    "intra_day_swing": 0.021,
+    "intra_day_swing": 0.009,
     "median": 7.789,
     "month_max": 8.678,
     "month_min": 7.688,
@@ -194,7 +194,7 @@
       0.78
     ],
     "band_width": 0.04,
-    "intra_day_swing": 0.008,
+    "intra_day_swing": 0.007,
     "median": 0.756,
     "month_max": 0.975,
     "month_min": 0.722,
@@ -210,7 +210,7 @@
       0.93
     ],
     "band_width": 0.3,
-    "intra_day_swing": 0.017,
+    "intra_day_swing": 0.025,
     "median": 0.71,
     "month_max": 1.655,
     "month_min": 0.424,
@@ -226,11 +226,11 @@
       3.33
     ],
     "band_width": 0.23,
-    "intra_day_swing": 1.556,
+    "intra_day_swing": 1.476,
     "median": 3.171,
     "month_max": 3.61,
     "month_min": 2.916,
-    "note": "intra-day swing 1.56 is over half the month's whole 0.69 range (tidal)",
+    "note": "intra-day swing 1.48 is over half the month's whole 0.69 range (tidal)",
     "p10": 3.037,
     "p90": 3.364,
     "quality": "TIDAL"
@@ -242,7 +242,7 @@
       0.99
     ],
     "band_width": 0.2,
-    "intra_day_swing": 0.01,
+    "intra_day_swing": 0.004,
     "median": 0.829,
     "month_max": 1.525,
     "month_min": 0.746,
@@ -258,7 +258,7 @@
       2.83
     ],
     "band_width": 0.57,
-    "intra_day_swing": 0.127,
+    "intra_day_swing": 0.16,
     "median": 2.399,
     "month_max": 4.855,
     "month_min": 1.996,
@@ -274,7 +274,7 @@
       0.7
     ],
     "band_width": 0.16,
-    "intra_day_swing": 0.022,
+    "intra_day_swing": 0.016,
     "median": 0.579,
     "month_max": 2.124,
     "month_min": 0.511,
