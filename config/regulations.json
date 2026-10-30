@@ -1,6 +1,6 @@
 {
-  "date_modified": "2026-10-28",
-  "fetched": "2026-10-29T19:11:04+00:00",
+  "date_modified": "2026-10-30",
+  "fetched": "2026-10-30T18:48:50+00:00",
   "general": [
     "You can only fish for salmon in Region 2 during daylight hours.",
     "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
@@ -403,6 +403,18 @@
           12,
           31
         ]
+      },
+      {
+        "area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
+        ]
       }
     ],
     "Coquitlam River": [
@@ -485,6 +497,18 @@
         ]
       },
       {
+        "area": "from the outlet of Harrison Lake downstream to the Highway 7 Bridge",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
+        ]
+      },
+      {
         "area": "from the Highway 7 Bridge downstream to the confluence with the Fraser River",
         "dates": "Sep 1 to Dec 31",
         "limit": "4 hatchery marked per day",
@@ -494,6 +518,18 @@
           1,
           12,
           31
+        ]
+      },
+      {
+        "area": "from the Highway 7 Bridge downstream to the confluence with the Fraser River",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
         ]
       }
     ],
@@ -737,6 +773,18 @@
           12,
           31
         ]
+      },
+      {
+        "area": "from the Highway 7 bridge at Dewdney downstream to the Fraser River",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
+        ]
       }
     ],
     "Norrish (Suicide) Creek": [
@@ -789,6 +837,18 @@
           12,
           31
         ]
+      },
+      {
+        "area": "downstream of 168th Street at Bothwell Park",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
+        ]
       }
     ],
     "Squamish River (including Powerhouse Channel)": [
@@ -840,6 +900,18 @@
           1,
           12,
           31
+        ]
+      },
+      {
+        "area": "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion on the east side of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for salmon in that portion on the west side of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
+        "dates": "Oct 17 to Nov 30",
+        "limit": "2 per day FN1122",
+        "species": "Chum",
+        "window": [
+          10,
+          17,
+          11,
+          30
         ]
       }
     ]
