@@ -1,6 +1,6 @@
 {
-  "date_modified": "2026-10-30",
-  "fetched": "2026-11-01T18:31:34+00:00",
+  "date_modified": "2026-11-02",
+  "fetched": "2026-11-02T19:03:06+00:00",
   "general": [
     "You can only fish for salmon in Region 2 during daylight hours.",
     "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
@@ -471,7 +471,7 @@
     ],
     "Fraser River": [
       {
-        "area": "mainstem waters upstream of the CPR Bridge at Mission, BC",
+        "area": "mainstem waters upstream of the CPR Bridge at Mission",
         "dates": "Apr 1 until further notice",
         "limit": "No fishing for salmon",
         "species": "All",
@@ -480,6 +480,18 @@
           1,
           null,
           null
+        ]
+      },
+      {
+        "area": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+        "dates": "Nov 3 to Nov 30",
+        "limit": "2 per day FN1179",
+        "species": "Chum",
+        "window": [
+          11,
+          3,
+          11,
+          30
         ]
       }
     ],
