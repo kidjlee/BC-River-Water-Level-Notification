@@ -33,6 +33,18 @@ CONFIG = Path("config/rivers.yaml")
 MONTHLY_OUT = Path("config/thresholds_monthly.json")
 ACTUALS = Path("data/actuals_daily.json")
 MIN_MONTH_SAMPLES = 25   # need this many days-in-month across history to trust it
+# Only the most recent years count. Several rivers here are dam-regulated, and
+# their release rules changed (Coquitlam and Alouette gained higher minimum
+# flows under BC Hydro water-use plans in the 2000s), so 60 years of history
+# mixes how the river used to be run with how it's run now. 15 years is still
+# ~450 days per calendar month — plenty for percentiles.
+CAL_YEARS = 15
+
+
+def _recent_only(dates, values):
+    cutoff = (dt.date.today() - dt.timedelta(days=365 * CAL_YEARS)).isoformat()
+    keep = [(d, v) for d, v in zip(dates, values) if d >= cutoff]
+    return [d for d, _ in keep], [v for _, v in keep]
 
 
 def _from_actuals(station: str):
@@ -74,7 +86,7 @@ def history(river: dict):
     station, metric = river["station"], river.get("metric", "level")
     if metric == "flow":
         try:
-            dates, values = fetch_daily(station, "flow")
+            dates, values = _recent_only(*fetch_daily(station, "flow"))
             if values:
                 return dates, values, "eccc discharge archive"
         except Exception as e:
@@ -92,7 +104,7 @@ def history(river: dict):
     rating = fit_rating(levels, flows)
     if usable(rating):
         try:
-            qd, qv = fetch_daily(station, "flow")
+            qd, qv = _recent_only(*fetch_daily(station, "flow"))
         except Exception as e:
             qd, qv = [], []
             print(f"  [{station}] ECCC discharge archive unavailable ({type(e).__name__})")
