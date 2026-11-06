@@ -41,9 +41,9 @@ rivers:
     fed_by: mixed
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "chinook", "steelhead"]
-    good_low: 1.76
-    good_high: 2.04
-    blown_out: 2.21
+    good_low: 1.71
+    good_high: 2.1
+    blown_out: 2.35
     notes: "Prime on the drop after a rain bump, once it clears. A >1 m rise blows it out."
 
   - name: "Fraser River at Hope"
@@ -57,9 +57,9 @@ rivers:
     fed_by: snow
     season_months: [7, 8, 9, 10]
     species: ["sockeye", "pink", "chinook"]
-    good_low: 2000.0
-    good_high: 3260.0
-    blown_out: 5130.0
+    good_low: 1900.0
+    good_high: 2720.0
+    blown_out: 4420.0
     notes: "Bar fishing; lower/clearer is better. Freshet peaks 7000-11000 cms."
 
   - name: "Cowichan River"
@@ -72,9 +72,9 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["coho", "chinook", "steelhead", "brown trout"]
-    good_low: 0.58
-    good_high: 1.22
-    blown_out: 1.69
+    good_low: 0.6
+    good_high: 1.21
+    blown_out: 1.68
     notes: "Low-water summer fishery; needs fall rain to fire up."
 
   - name: "Squamish River"
@@ -88,9 +88,9 @@ rivers:
     fed_by: glacier
     season_months: [8, 9, 10, 11]
     species: ["chum", "coho", "pink", "steelhead"]
-    good_low: 2.46
-    good_high: 3.21
-    blown_out: 3.82
+    good_low: 2.43
+    good_high: 3.17
+    blown_out: 3.69
     notes: "Glacial; afternoon melt raises + dirties it. Best fished early."
 
   - name: "Skeena River at Usk"
@@ -103,9 +103,9 @@ rivers:
     fed_by: snow
     season_months: [7, 8, 9, 10]
     species: ["chinook", "sockeye", "coho", "steelhead"]
-    good_low: 630.0
-    good_high: 1010.0
-    blown_out: 1630.0
+    good_low: 560.0
+    good_high: 870.0
+    blown_out: 1370.0
     notes: "Freshet-driven; huge seasonal swing. Calibrate flow thresholds."
 
   - name: "Capilano River"
@@ -120,8 +120,8 @@ rivers:
     fed_by: rain
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "steelhead"]
-    good_low: 0.61
-    good_high: 0.92
+    good_low: 0.53
+    good_high: 0.81
     blown_out: 1.39
     notes: "Below Cleveland Dam, the reach anglers fish; flashy after rain. Thresholds pending recalibration on this gauge."
 
@@ -137,9 +137,9 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["chum", "coho", "chinook"]
-    good_low: 7.74
-    good_high: 8.02
-    blown_out: 8.29
+    good_low: 8.0
+    good_high: 8.13
+    blown_out: 8.47
     notes: "The fished reach at Port Coquitlam. Briefly moved to 08MH141 (above the reservoir) on a bad TIDAL grade; this gauge moves ~2 cm/day, not with the tide. Thresholds pending calibration."
 
   - name: "Alouette River"
@@ -153,9 +153,9 @@ rivers:
     fed_by: rain
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "chinook"]
-    good_low: 0.73
-    good_high: 0.78
-    blown_out: 0.89
+    good_low: 0.76
+    good_high: 0.79
+    blown_out: 0.9
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Chehalis River"
@@ -170,8 +170,8 @@ rivers:
     season_months: [9, 10, 11, 12]
     species: ["coho", "chum", "chinook", "steelhead"]
     good_low: 9.01
-    good_high: 9.42
-    blown_out: 9.88
+    good_high: 9.45
+    blown_out: 9.93
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Harrison River"
@@ -202,9 +202,9 @@ rivers:
     fed_by: rain
     season_months: [9, 10, 11, 12]
     species: ["chum", "coho", "chinook"]
-    good_low: 2.06
-    good_high: 2.39
-    blown_out: 2.97
+    good_low: 2.08
+    good_high: 2.42
+    blown_out: 3.09
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Cheakamus River"
@@ -218,9 +218,9 @@ rivers:
     fed_by: glacier
     season_months: [8, 9, 10, 11]
     species: ["coho", "chum", "pink", "steelhead"]
-    good_low: 0.72
-    good_high: 0.81
-    blown_out: 1.08
+    good_low: 0.8
+    good_high: 0.9
+    blown_out: 1.1
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Coquihalla River"
@@ -233,9 +233,9 @@ rivers:
     fed_by: snow
     season_months: [9, 10, 11]
     species: ["coho", "chinook", "steelhead"]
-    good_low: 1.85
-    good_high: 1.94
-    blown_out: 2.06
+    good_low: 1.84
+    good_high: 1.96
+    blown_out: 2.09
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Nicomekl River"
@@ -250,8 +250,8 @@ rivers:
     season_months: [10, 11, 12]
     species: ["coho", "chum", "chinook"]
     good_low: 0.82
-    good_high: 0.97
-    blown_out: 1.74
+    good_high: 1.03
+    blown_out: 1.77
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Pitt River"
@@ -281,9 +281,9 @@ rivers:
     fed_by: glacier
     season_months: [8, 9, 10, 11]
     species: ["coho", "chum", "pink"]
-    good_low: 1.36
-    good_high: 1.58
-    blown_out: 1.96
+    good_low: 1.33
+    good_high: 1.5
+    blown_out: 1.95
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Kanaka Creek"
@@ -297,9 +297,9 @@ rivers:
     fed_by: rain
     season_months: [10, 11, 12]
     species: ["coho", "chum"]
-    good_low: 0.98
-    good_high: 1.12
-    blown_out: 1.28
+    good_low: 0.97
+    good_high: 1.13
+    blown_out: 1.29
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
 
   - name: "Sumas River"
@@ -314,6 +314,6 @@ rivers:
     season_months: [10, 11, 12]
     species: ["coho", "chum", "chinook"]
     good_low: 1.32
-    good_high: 1.7
-    blown_out: 2.41
+    good_high: 1.91
+    blown_out: 2.52
     notes: "Auto-added from DFO Region 2; thresholds pending calibration."
