@@ -28,7 +28,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
-from eccc_history import fetch_daily          # noqa: E402
+from calibrate_thresholds import MIN_MONTH_SAMPLES, history   # noqa: E402
 from src.sources import fetch_station          # noqa: E402
 from src.analyze import BC_TZ                   # noqa: E402
 
@@ -52,9 +52,11 @@ def intra_day_swing(station: str, metric: str) -> float | None:
 
 def diagnose(river: dict, month: int, monthly: dict) -> dict:
     station, metric = river["station"], river.get("metric", "level")
-    dates, values = fetch_daily(station, metric)
+    # Same datum-safe history the thresholds were built from; the raw level
+    # archive mixes re-surveyed datums, which inflated Harrison's "range" by 5 m.
+    dates, values, _ = history(river)
     mvals = [v for d, v in zip(dates, values) if int(d[5:7]) == month]
-    if len(mvals) < 60:
+    if len(mvals) < MIN_MONTH_SAMPLES:
         return {"quality": "SPARSE", "note": f"only {len(mvals)} days of history for this month"}
 
     arr = np.asarray(mvals)

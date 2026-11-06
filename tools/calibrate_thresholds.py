@@ -14,6 +14,7 @@ numeric threshold lines (and flips `verified: true`), preserving comments.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import re
 import sys
@@ -24,6 +25,9 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from eccc_history import fetch_daily  # noqa: E402
+from datum import fit_rating, usable  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from src.wateroffice import fetch_daily_means  # noqa: E402
 
 CONFIG = Path("config/rivers.yaml")
 MONTHLY_OUT = Path("config/thresholds_monthly.json")
@@ -41,24 +45,67 @@ def _from_actuals(station: str):
     return [d for d, _ in pairs], [v for _, v in pairs]
 
 
-def history(river: dict):
-    """Daily history for a station: decades from ECCC, else the backfilled year.
-
-    ECCC's archive is the better basis — decades rather than one year — but it
-    goes down, and a station left on placeholder thresholds reports a verdict
-    against numbers from a different gauge. One year of Water Office daily
-    means is a narrower but honest fallback, and it's the same data the chart
-    is drawn from.
-    """
-    station = river["station"]
+def _recent_pairs(station: str):
+    """Last year of daily-mean level and discharge, on today's datum."""
+    end = dt.datetime.now(dt.timezone.utc).date()
+    start = end - dt.timedelta(days=365)
+    levels = fetch_daily_means(station, "level", start, end)
     try:
-        dates, values = fetch_daily(station, river.get("metric", "level"))
-        if values:
-            return dates, values, "eccc"
+        flows = fetch_daily_means(station, "flow", start, end)
+    except Exception:
+        flows = {}
+    return levels, flows
+
+
+def history(river: dict):
+    """Daily history to calibrate on, in the units AND datum shown today.
+
+    Flow rivers: decades of archived discharge (no datum to drift).
+
+    Level rivers: archived *level* can't be trusted across decades because
+    gauge datums get re-surveyed — Harrison's archive mixes ~1 m and ~6-9 m
+    readings, which put its "good" band 5 m below the real river. Instead we
+    take archived *discharge* and map it through the rating learned from the
+    last year of paired readings (see tools/datum.py). If the station has no
+    discharge, or its level doesn't follow discharge (tidal, lake-backwatered),
+    we use the last year of level alone: shorter, but datum-consistent by
+    construction. If Water Office is unreachable, the stored chart history.
+    """
+    station, metric = river["station"], river.get("metric", "level")
+    if metric == "flow":
+        try:
+            dates, values = fetch_daily(station, "flow")
+            if values:
+                return dates, values, "eccc discharge archive"
+        except Exception as e:
+            print(f"  [{station}] ECCC archive unavailable ({type(e).__name__})")
+        dates, values = _from_actuals(station)
+        return dates, values, "stored year"
+
+    try:
+        levels, flows = _recent_pairs(station)
     except Exception as e:
-        print(f"  [{station}] ECCC archive unavailable ({type(e).__name__}); using backfilled year")
-    dates, values = _from_actuals(station)
-    return dates, values, "actuals"
+        print(f"  [{station}] Water Office unavailable ({type(e).__name__}); using stored year")
+        dates, values = _from_actuals(station)
+        return dates, values, "stored year"
+
+    rating = fit_rating(levels, flows)
+    if usable(rating):
+        try:
+            qd, qv = fetch_daily(station, "flow")
+        except Exception as e:
+            qd, qv = [], []
+            print(f"  [{station}] ECCC discharge archive unavailable ({type(e).__name__})")
+        if len(qv) >= 3 * 365:
+            f, scatter = rating
+            hv = [round(float(x), 3) for x in f(qv)]
+            return list(qd), hv, f"{len(qv) // 365}y discharge via today's rating (scatter {scatter:.3f})"
+    elif rating is not None:
+        print(f"  [{station}] level doesn't follow discharge (scatter {rating[1]:.2f}); "
+              f"recent year only")
+
+    days = sorted(levels)
+    return days, [levels[d] for d in days], "recent year of level"
 
 
 def suggest(river, low_q, high_q, blown_q):
@@ -77,7 +124,8 @@ def suggest(river, low_q, high_q, blown_q):
 
 def monthly_table(river, low_q, high_q, blown_q) -> dict[str, list[float]]:
     """Percentile thresholds per calendar month, from that month's own history."""
-    dates, values, _ = history(river)
+    dates, values, source = history(river)
+    print(f"  [{river['station']}] calibrating on: {source}, {len(values)} days")
     rnd = (lambda x: round(float(x), 2)) if river.get("metric") != "flow" else (lambda x: round(float(x), -1))
     by_month: dict[int, list[float]] = {}
     for d, v in zip(dates, values):

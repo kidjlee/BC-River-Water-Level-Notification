@@ -22,9 +22,12 @@ class Reading:
     timestamp: datetime
     level_m: float | None
     discharge_cms: float | None
+    water_temp_c: float | None = None
 
 
 def _metric_value(reading: "Reading", metric: str) -> float | None:
+    if metric == "temp":
+        return reading.water_temp_c
     return reading.discharge_cms if metric == "flow" else reading.level_m
 
 
@@ -71,22 +74,45 @@ def _to_float(v) -> float | None:
 
 
 def _reject_outliers(readings: list["Reading"], attr: str) -> None:
-    """Null out non-physical spikes/sentinels in ECCC's real-time feed.
+    """Null out isolated glitches (e.g. a 16666 sentinel on a 2 m river).
 
-    Uses a robust median ± k*MAD test (MAD = median absolute deviation), so a
-    single garbage value (e.g. a 16666 spike on a 2 m river) is dropped without
-    discarding genuine hydrological swings. Sets the offending field to None.
+    A glitch jumps away from BOTH neighbours and comes straight back; a real
+    rise is a run of readings that agree with each other. The old version
+    compared every reading with the median of the whole 5-day window instead,
+    so a genuine rain spike past ~25% of that median was thrown away — during a
+    blow-out it reported the river at the last pre-flood value, i.e. "in the
+    zone" exactly when it wasn't.
+
+    `tol` is scaled from the series' own typical 5-minute step, so a quiet
+    dam-fed gauge and a flashy creek are each judged on their own noise. The
+    newest reading has no right-hand neighbour, so it's only rejected when the
+    jump is absurd relative to everything seen in the window.
     """
-    vals = [getattr(r, attr) for r in readings if getattr(r, attr) is not None]
-    if len(vals) < 5:
+    idx = [i for i, r in enumerate(readings) if getattr(r, attr) is not None]
+    floor = -1.0 if attr == "water_temp_c" else 0.0   # near-freezing water reads ~-0.1 °C
+    for i in idx:                                   # non-physical
+        if getattr(readings[i], attr) < floor:
+            setattr(readings[i], attr, None)
+    idx = [i for i in idx if getattr(readings[i], attr) is not None]
+    if len(idx) < 5:
         return
-    med = statistics.median(vals)
-    mad = statistics.median([abs(v - med) for v in vals]) or 0.0
-    thr = max(8 * mad, 0.25 * abs(med), 1e-6)
-    for r in readings:
-        v = getattr(r, attr)
-        if v is not None and (abs(v - med) > thr or v < 0):
-            setattr(r, attr, None)
+    vals = [getattr(readings[i], attr) for i in idx]
+    steps = [abs(b - a) for a, b in zip(vals, vals[1:]) if b != a]
+    step = statistics.median(steps) if steps else 0.0
+    scale = max(abs(statistics.median(vals)), 1e-6)
+    tol = max(20 * step, 0.05 * scale)
+
+    bad = set()
+    for k in range(1, len(vals) - 1):
+        up, down = vals[k] - vals[k - 1], vals[k] - vals[k + 1]
+        if abs(up) > tol and abs(down) > tol and (up > 0) == (down > 0):
+            bad.add(k)                              # out and straight back
+    clean = [v for k, v in enumerate(vals[:-1]) if k not in bad]  # one glitch can't widen the range
+    span = (max(clean) - min(clean)) or scale
+    if clean and abs(vals[-1] - clean[-1]) > max(10 * span, 2 * scale):
+        bad.add(len(vals) - 1)                      # absurd newest reading
+    for k in bad:
+        setattr(readings[idx[k]], attr, None)
 
 
 def fetch_station(station: str, prov: str = "BC", hours_back: int = 120, timeout: int = 60) -> StationData:
@@ -112,19 +138,27 @@ def _fetch_station_wateroffice(station: str, hours_back: int, timeout: int) -> S
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=max(1, hours_back // 24 + 1))
     merged: dict[datetime, list] = {}
-    for metric, idx in (("level", 0), ("flow", 1)):
-        for ts, value in fetch_series(station, metric, start, end, timeout=timeout):
-            merged.setdefault(ts, [None, None])[idx] = value
+    for metric, idx in (("level", 0), ("flow", 1), ("temp", 2)):
+        try:
+            series = fetch_series(station, metric, start, end, timeout=timeout)
+        except Exception:
+            if metric == "temp":
+                continue        # only some gauges have a thermometer; never fail on it
+            raise
+        for ts, value in series:
+            merged.setdefault(ts, [None, None, None])[idx] = value
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
     data = StationData(station=station)
     for ts in sorted(merged):
         if ts < cutoff:
             continue
-        level, flow = merged[ts]
-        data.readings.append(Reading(timestamp=ts, level_m=level, discharge_cms=flow))
+        level, flow, temp = merged[ts]
+        data.readings.append(Reading(timestamp=ts, level_m=level, discharge_cms=flow,
+                                     water_temp_c=temp))
     _reject_outliers(data.readings, "level_m")
     _reject_outliers(data.readings, "discharge_cms")
+    _reject_outliers(data.readings, "water_temp_c")
     return data
 
 

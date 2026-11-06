@@ -27,6 +27,7 @@ VERDICT_ORDER = ["GO", "GET_READY", "MARGINAL", "TOO_LOW", "BLOWN_OUT", "NO_DATA
 EMOJI = {"GO": "🟢", "GET_READY": "🟡", "MARGINAL": "🟠", "TOO_LOW": "🔵", "BLOWN_OUT": "🔴", "NO_DATA": "⚪"}
 BC_TZ = ZoneInfo("America/Vancouver")
 MELT_FED = {"snow", "glacier"}   # rivers with a real daily melt cycle; rain/mixed don't
+STALE_HOURS = 12                 # older than this, a reading is reported but not judged
 _MONTH_ABBR = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -109,6 +110,10 @@ class Assessment:
     level_at: str | None = None
     discharge_cms: float | None = None
     discharge_at: str | None = None
+    water_temp_c: float | None = None
+    water_temp_at: str | None = None
+    temp_change_24h: float | None = None   # °C over the last ~24 h, if measurable
+    reach_note: str = ""        # gauge sits on a different reach than the fishery
     track_record: str = ""      # forecast accuracy from history.evaluate()
 
     @property
@@ -233,6 +238,8 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
     gl, gh, bl, basis = effective_thresholds(river, month)
     lvl = data.latest_metric("level")
     dis = data.latest_metric("flow")
+    tmp = data.latest_metric("temp")
+    tmp_then = data.metric_at_or_before(tmp[0] - timedelta(hours=24), "temp") if tmp else None
     base = dict(river=name, station=station, metric=metric, unit=unit,
                 good_low=gl, good_high=gh, blown_out=bl,
                 region=river.get("region", ""), species=river.get("species", []),
@@ -243,13 +250,29 @@ def assess(river: dict, data: StationData, rain: RainOutlook | None, defaults: d
                 level_m=(round(lvl[1], 3) if lvl else None),
                 level_at=(lvl[0].isoformat() if lvl else None),
                 discharge_cms=(round(dis[1], 3) if dis else None),
-                discharge_at=(dis[0].isoformat() if dis else None))
+                discharge_at=(dis[0].isoformat() if dis else None),
+                water_temp_c=(round(tmp[1], 1) if tmp else None),
+                water_temp_at=(tmp[0].isoformat() if tmp else None),
+                temp_change_24h=(round(tmp[1] - tmp_then[1], 1)
+                                 if tmp and tmp_then and tmp_then[0] < tmp[0] else None),
+                reach_note=river.get("reach_note", ""))
 
     if latest is None:
         return Assessment(**base, verdict="NO_DATA", value=None, trend="unknown", rate_per_h=None,
                           headline="No recent data from the station.", outlook="", zone="low", updated=None)
 
     ts, value = latest
+    age_h = (now - ts).total_seconds() / 3600
+    if age_h > STALE_HOURS:
+        # A gauge that has stopped reporting still has a "latest" value; showing
+        # it as current would let a days-old reading drive a GO verdict and an
+        # alert. Keep the number visible, but don't judge on it.
+        shown = f"{value:.3f} m" if unit == "m" else f"{value:,.0f} cms"
+        return Assessment(**base, verdict="NO_DATA", value=round(value, 3), trend="unknown",
+                          rate_per_h=None, zone=_zone(value, gl, gh, bl), updated=ts.isoformat(),
+                          headline=f"Gauge hasn't reported for {age_h:.0f} h — last reading "
+                                   f"{shown}. Not judging on stale data.",
+                          outlook="")
     zone = _zone(value, gl, gh, bl)
     trend, rate = _trend(data, metric)
     width = max(gh - gl, 1e-6)

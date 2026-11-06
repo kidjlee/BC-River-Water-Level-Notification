@@ -26,7 +26,7 @@ import requests
 
 BC_TZ = ZoneInfo("America/Vancouver")
 URL = "https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline"
-PARAM = {"level": 46, "flow": 47}
+PARAM = {"level": 46, "flow": 47, "temp": 5}   # 5 = water temp °C (hourly)
 UA = {"User-Agent": "bc-river-water-level-notifier/1.0"}
 
 

@@ -192,6 +192,7 @@ rivers:
 
   - name: "Stave River"
     station: "08MH147"          # STAVE RIVER ABOVE STAVE LAKE (auto-added, calibrate)
+    reach_note: "Gauge is above Stave Lake; the fishery is below the BC Hydro dam, where flow is set by dam releases. This level shows inflow to the reservoir, not the fished water (the below-dam gauge 08MH011 is discontinued)."
     dfo_waters: "Stave River"
     verified: true
     lat: 49.55619
@@ -270,6 +271,7 @@ rivers:
 
   - name: "Mamquam River"
     station: "08GA075"          # MAMQUAM RIVER ABOVE RING CREEK (auto-added, calibrate)
+    reach_note: "Gauge is upstream, above Ring Creek; the lower river that's fished runs higher. Rises and drops track, but absolute levels won't match the lower river (lower-river gauges are discontinued)."
     dfo_waters: "Mamquam River"
     verified: true
     lat: 49.72595

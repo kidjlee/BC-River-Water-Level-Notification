@@ -118,6 +118,16 @@ def _readings(a: Assessment, now: datetime) -> str:
     """
     lvl = f"{a.level_m:.3f} m" if a.level_m is not None else "—"
     dis = f"{a.discharge_cms:,.3f} m³/s" if a.discharge_cms is not None else "—"
+    # Only some gauges carry a thermometer (8 of 18 here); say so rather than
+    # leaving a blank that reads like a fault.
+    if a.water_temp_c is not None:
+        temp = f"{a.water_temp_c:.1f} °C"
+        d = a.temp_change_24h
+        tnote = (f'<span class="rsub">{"+" if d > 0 else ""}{d:.1f} °C / 24 h</span>'
+                 if d is not None and abs(d) >= 0.1 else
+                 '<span class="rsub">steady</span>' if d is not None else "")
+    else:
+        temp, tnote = "—", '<span class="rsub">no sensor at this gauge</span>'
     stamp = a.level_at or a.discharge_at
     when = f'<div class="rwhen">as of {html.escape(_rel_time(stamp, now))}</div>' if stamp else ""
     return (
@@ -126,6 +136,8 @@ def _readings(a: Assessment, now: datetime) -> str:
         f'<span class="rv">{lvl}</span></div>'
         f'<div class="r"><span class="rk">Most Recent Discharge</span>'
         f'<span class="rv">{dis}</span></div>'
+        f'<div class="r"><span class="rk">Water Temperature</span>'
+        f'<span class="rv">{temp}</span>{tnote}</div>'
         f"</div>{when}"
     )
 
@@ -173,6 +185,8 @@ def _card(a: Assessment, now: datetime, actuals: dict | None, data: StationData 
     basis = f'<div class="gbasis">zones: {html.escape(a.threshold_basis)}</div>' if a.threshold_basis else ""
     warn = (f'<p class="warn">⚠️ {a.gauge_quality} gauge — {html.escape(a.gauge_note)}. '
             f'Treat with caution.</p>') if a.gauge_quality not in ("OK", "") else ""
+    if a.reach_note:
+        warn += f'<p class="warn">📍 {html.escape(a.reach_note)}</p>'
     best = f'<p class="best">🕐 {html.escape(a.best_time)}</p>' if a.best_time else ""
     readings = _readings(a, now)
     rules = _rules(a, all_regs or {}, now.astimezone(BC_TZ).date())
@@ -386,13 +400,14 @@ def render(results, generated: str, actuals: dict | None = None) -> str:
             transform:translateX(-1.5px); box-shadow:0 0 0 2px var(--card); }}
   .glabels {{ display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin:0 0 8px; }}
   .gbasis {{ font-size:.6rem; color:var(--muted); font-style:italic; margin:-4px 0 8px; }}
-  .readings {{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0 2px; }}
+  .readings {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:8px 0 2px; }}
   .readings .r {{ background:rgba(255,255,255,.04); border:1px solid var(--line);
                   border-radius:8px; padding:6px 8px; min-width:0; }}
   .rk {{ display:block; font-size:.58rem; letter-spacing:.02em; color:var(--muted);
          text-transform:uppercase; }}
   .rv {{ display:block; font-size:.95rem; font-weight:650; font-variant-numeric:tabular-nums;
          margin-top:1px; }}
+  .rsub {{ display:block; font-size:.56rem; color:var(--muted); margin-top:1px; }}
   .rwhen {{ font-size:.58rem; color:var(--muted); margin:3px 0 6px; }}
   .rules {{ margin:10px 0 2px; border-top:1px solid var(--line); padding-top:8px; }}
   .ruleshead {{ font-size:.58rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
