@@ -1,6 +1,6 @@
 {
-  "date_modified": "2026-11-02",
-  "fetched": "2026-11-06T20:03:45+00:00",
+  "date_modified": "2026-11-06",
+  "fetched": "2026-11-07T18:15:59+00:00",
   "general": [
     "You can only fish for salmon in Region 2 during daylight hours.",
     "No fishing is allowed within 100\u00a0meters of any government facility operated for counting, passing or rearing fish.",
@@ -480,6 +480,18 @@
           1,
           null,
           null
+        ]
+      },
+      {
+        "area": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+        "dates": "Nov 7 to Nov 30",
+        "limit": "2 per day, hatchery marked only FN1217",
+        "species": "Coho",
+        "window": [
+          11,
+          7,
+          11,
+          30
         ]
       },
       {
